@@ -1,75 +1,8 @@
-// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
+// This code was created by me, Daniel Caldwell, and it is available to the public domain.
 function ImageInfo( url, name ){
 	this.url = url;
 	this.name = name;
 }
-var widescreenImages  = new Array(65);
-widescreenImages[0]  = new ImageInfo('/images/large/2009-11-07__Joshia Tree Rock Climbing School.jpg', '');
-widescreenImages[1]  = new ImageInfo('/images/large/2009-11-07__Joshia Tree Rock Climbing School-2.jpg', '');
-widescreenImages[2]  = new ImageInfo('/images/large/2009-11-07_106_Joshua Tree Rock Climbing.jpg', '');
-widescreenImages[3]  = new ImageInfo('/images/large/2009-11-07_7234_Joshia Tree Rock Climbing School.jpg', '');
-widescreenImages[4]  = new ImageInfo('/images/large/2009-11-07_7283_Joshia Tree Rock Climbing School.jpg', '');
-widescreenImages[5]  = new ImageInfo('/images/large/2009-11-07_7284_Joshia Tree Rock Climbing School.jpg', '');
-widescreenImages[6]  = new ImageInfo('/images/large/2009-11-08__Joshia Tree Rock Climbing School.jpg', '');
-widescreenImages[7]  = new ImageInfo('/images/large/2009-11-08__Joshia Tree Rock Climbing School-2.jpg', '')
-widescreenImages[8]  = new ImageInfo('/images/large/2010-01-01__ChineseFoodResturantPanoramic.jpg', '');
-widescreenImages[9]  = new ImageInfo('/images/large/2011-02-17_1429_SantaMonica Panorama.jpg', '');
-widescreenImages[10]  = new ImageInfo('/images/large/2011-02-17_1435_SantaMonica Panorama.jpg', '');
-widescreenImages[11]  = new ImageInfo('/images/large/2011-02-17_1449_SantaMonica Panorama.jpg', '');
-widescreenImages[12]  = new ImageInfo('/images/large/2011-02-17_1459_SantaMonica.jpg', '');
-widescreenImages[13]  = new ImageInfo('/images/large/2011-02-17_1468_SantaMonica.jpg', '');
-widescreenImages[14]  = new ImageInfo('/images/large/2011-02-17_1480_SantaMonica Panorama.jpg', '');
-widescreenImages[15]  = new ImageInfo('/images/large/2011-02-17_1485_SantaMonica.jpg', '');
-widescreenImages[16]  = new ImageInfo('/images/large/2011-02-17_1486_SantaMonica Panorama.jpg', '');
-widescreenImages[17]  = new ImageInfo('/images/large/2011-03-25_1525_BluesBrothers Panorama.jpg', '');
-widescreenImages[18]  = new ImageInfo('/images/large/2011-04-02_4387_LagunaNiguelBeach_stitch.jpg', '');
-widescreenImages[19]  = new ImageInfo('/images/large/2011-04-02_4449_LagunaNiguelBeach_stitch.jpg', '');
-widescreenImages[20]  = new ImageInfo('/images/large/2011-04-08_4510_ColdSanBernardinoAfternoon Panorama.jpg', '');
-widescreenImages[21]  = new ImageInfo('/images/large/2011-04-08_4526_ColdSanBernardinoAfternoon Panorama.jpg', '');
-widescreenImages[22]  = new ImageInfo('/images/large/2011-04-08_4538_ColdSanBernardinoAfternoon Panorama.jpg', '');
-widescreenImages[23]  = new ImageInfo('/images/large/2011-04-09_4755_JoshsBeachBonfire Panorama.jpg', '');
-widescreenImages[24]  = new ImageInfo('/images/large/2011-04-09_4766_JoshsBeachBonfire.jpg', '');
-widescreenImages[25]  = new ImageInfo('/images/large/2011-04-09_4801_JoshsBeachBonfire.jpg', '');
-widescreenImages[26]  = new ImageInfo('/images/large/2011-04-29_4998_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[27]  = new ImageInfo('/images/large/2011-04-30_5025_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[28]  = new ImageInfo('/images/large/2011-04-30_5044_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[29]  = new ImageInfo('/images/large/2011-04-30_5062_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[30]  = new ImageInfo('/images/large/2011-04-30_5065_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[31]  = new ImageInfo('/images/large/2011-04-30_5072_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[32]  = new ImageInfo('/images/large/2011-04-30_5082_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[33]  = new ImageInfo('/images/large/2011-04-30_5085_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[34]  = new ImageInfo('/images/large/2011-04-30_5091_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[35]  = new ImageInfo('/images/large/2011-04-30_5109_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[36]  = new ImageInfo('/images/large/2011-04-30_5122_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[37]  = new ImageInfo('/images/large/2011-04-30_5167_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[38]  = new ImageInfo('/images/large/2011-04-30_5175_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[39]  = new ImageInfo('/images/large/2011-04-30_5185_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[40]  = new ImageInfo('/images/large/2011-04-30_5197_GrandCanyonHike Panorama.jpg', '');
-widescreenImages[41]  = new ImageInfo('/images/large/2011-05-13_5253_CalicoCamping.jpg', '');
-widescreenImages[42]  = new ImageInfo('/images/large/2011-05-13_5269_CalicoCamping.jpg', '');
-widescreenImages[43]  = new ImageInfo('/images/large/2011-05-13_5271_CalicoCamping.jpg', '');
-widescreenImages[44]  = new ImageInfo('/images/large/2011-05-13_5287_CalicoCamping.jpg', '');
-widescreenImages[45]  = new ImageInfo('/images/large/2011-05-13_5298_CalicoCamping.jpg', '');
-widescreenImages[46]  = new ImageInfo('/images/large/2011-05-13_5325_CalicoCamping.jpg', '');
-widescreenImages[47]  = new ImageInfo('/images/large/2011-05-13_5350_CalicoCamping.jpg', '');
-widescreenImages[48]  = new ImageInfo('/images/large/2011-05-13_5355_CalicoCamping.jpg', '');
-widescreenImages[49]  = new ImageInfo('/images/large/2011-05-13_5356_CalicoCamping.jpg', '');
-widescreenImages[50]  = new ImageInfo('/images/large/2011-05-13_5362_CalicoCamping.jpg', '');
-widescreenImages[51]  = new ImageInfo('/images/large/2011-05-13_5374_CalicoCamping.jpg', '');
-widescreenImages[52]  = new ImageInfo('/images/large/2011-05-13_5385_CalicoCamping.jpg', '');
-widescreenImages[53]  = new ImageInfo('/images/large/2008-01-01_0620_Awesome Sunset from 330.jpg', '');
-widescreenImages[54]  = new ImageInfo('/images/large/2008-01-03_0624_Alien Clouds Over Highland.jpg', '');
-widescreenImages[55]  = new ImageInfo('/images/large/2008-05-15_2_Kolob Canyon.jpg', '');
-widescreenImages[56]  = new ImageInfo('/images/large/2008-05-15_2_Kolob Canyon-2.jpg', '');
-widescreenImages[57]  = new ImageInfo('/images/large/2008-05-15_107_Kolob Canyon.jpg', '');
-widescreenImages[58]  = new ImageInfo('/images/large/2008-05-15_108_Kolob Canyon.jpg', '');
-widescreenImages[59]  = new ImageInfo('/images/large/2008-05-15_1103_Kolob Canyon.jpg', '');
-widescreenImages[60]  = new ImageInfo('/images/large/2008-05-15_1104_Kolob Canyon.jpg', '');
-widescreenImages[61]  = new ImageInfo('/images/large/2008-05-15_1116_Kolob Canyon.jpg', '');
-widescreenImages[62]  = new ImageInfo('/images/large/2008-05-15_1123_Kolob Canyon.jpg', '');
-widescreenImages[63]  = new ImageInfo('/images/large/2008-05-15_1136_Kolob Canyon.jpg', '');
-widescreenImages[64]  = new ImageInfo('/images/large/2009-05-22__Camping At Joshua Tree-2.jpg', '');
-
 
 var images = new Array(24);
 images[0]  = new ImageInfo( './images/Decent-into-Fillmore.jpg', 'Fillmore' );
