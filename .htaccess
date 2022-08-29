@@ -1,0 +1,17 @@
+## Error Page
+ErrorDocument 403 /40X.html
+ErrorDocument 404 /40X.html
+ErrorDocument 401 /40X.html
+ErrorDocument 400 /40X.html
+ErrorDocument 500 /40X.html
+ErrorDocument 416 /40X.html
+AddLanguage en .en # English
+
+## Remove the "#" at the beginning of the next line to turn off directory indexes.
+Options -Indexes
+IndexIgnore .htaccess */.??* *~ *# */HEADER* */README* */_vti*
+Options All -Indexes
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# This domain inherits the “PHP” package.
+# php -- END cPanel-generated handler, do not edit
