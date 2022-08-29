@@ -1,3 +1,4 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <HTML>
 <HEAD>
 <TITLE>Daniel Caldwell's Website</TITLE>
@@ -6,75 +7,173 @@
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></HEAD>
 <BODY>
 
-<Table width="100%" height="100%">
-<tr>
-<td align="center" valign="middle">
+<DIV id="pageContent" class="pagediv">
 
-<table width="800">
-<tr>
-<td>
+	<img id="mainimage" class="fullImage">
+	<img id="hiddenimage" class="hiddenImage">
+	
+	<div class="fullScreenQuoteArea" id="quotearea">
+		<span id="quote" class="quote">quote</span> 
+		<BR><BR>
+		<span id="author" class="author">author</span>
+	</div>
+</DIV>
 
+<!-- include jquery library from google. //-->
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script type="text/javascript" src="imagelist.js"></script>
 <script type="text/javascript" src="quotelist.js"></script>
-<script language="Javascript">
-<!--
-
-// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
-
-var currentdate = 0;
-var core = 0;
-
-function ranImage() {
-  
-  var ranNum = Math.floor( Math.random() * images.length );
-  return(images[ranNum]);
-}
-
-function changeimage(){
-	var randomImage = ranImage();
-	document.images['PANORAMIC'].src = randomImage.url;
-	document.images['PANORAMIC'].alt = randomImage.name;
-}
+<script type="text/javascript">
 
 
-var randomImage = ranImage();
+	var currentdate = 0;
+	var core = 0;
+	
+	function getRandomWidescreenImage() {
+	  
+	  var ranNum = Math.floor( Math.random() * widescreenImages.length );
+	  return(widescreenImages[ranNum]);
+	}
+	
+	function ranQuote() {
+		var ranNum = Math.floor( Math.random() * quotes.length );
+		return(quotes[ranNum]);
+	}
+	
 
-document.write("<IMG NAME='PANORAMIC' src='" + randomImage.url + "' border=2 alt='" + randomImage.name + "' onmousedown=if(event.button!=2){changeimage();}else{window.open('http://www.danielcaldwell.com/images.html');}  > ")
+	var randomQuote = ranQuote();
 
-//-->
+	// replace quote
+	$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
+	$('span[id="author"]').html("-" + randomQuote.author );
+			
+	
+	if ( screen.height >= 768 && screen.width >= 1366){
+		// widescreen
+		var randomWidescreenImage = getRandomWidescreenImage()
+		document.getElementById("mainimage").src = randomWidescreenImage.url;
+		document.getElementById("mainimage").alt = randomWidescreenImage.name;
+		
+		
+		var randomWidescreenImage = getRandomWidescreenImage()
+		document.getElementById("hiddenimage").src = randomWidescreenImage.url;
+		document.getElementById("hiddenimage").alt = randomWidescreenImage.name;
+			
+	}
+	
+	
+	// Event binding for resizing the window
+	$(window).resize( function() {
+		
+		document.getElementById("mainimage").width = $(window).width();
+		document.getElementById("mainimage").height = $(window).height();
+	
+	});
+	
+	function replaceImage(){
+		// fade out 
+		$('img[id=mainimage]').fadeOut("slow", function(){
 
-</script>
+			// replace image
+			document.getElementById("mainimage").src = document.getElementById("hiddenimage").src;
+			document.getElementById("mainimage").alt = document.getElementById("hiddenimage").alt;
+		
+			$(this).fadeIn("slow");
+			
+			// get next random image
+			var randomWidescreenImage = getRandomWidescreenImage()
+			document.getElementById("hiddenimage").src = randomWidescreenImage.url;
+			document.getElementById("hiddenimage").alt = randomWidescreenImage.name;
+				
+		});
+	}
+	
+	function replaceQuote(){
+	
+	
+		$('div[id="quotearea"]').fadeOut("slow", function(){
 
-</td>
-</tr>
-<tr>
-<td>
+			var randomQuote = ranQuote();
+		
+			// replace quote
+			$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
+			$('span[id="author"]').html("-" + randomQuote.author );
+			
+			$('div[id="quotearea"]').fadeIn("slow");
+			
+		});
+		
+	}
+	
+	
+	// Event binding for clicking on the image	
+	$('img[id=mainimage]').click( function (){
 
+		replaceQuote();
+			
+	});
+	
+	
+	
+	function refreshPageContent(){
+	
+	
+		$('div[id="quotearea"]').fadeOut("slow");
+		$('img[id="mainimage"]').fadeOut("slow", function(){
 
-<script language="Javascript">
-<!--
+			// replace image
+			document.getElementById("mainimage").src = document.getElementById("hiddenimage").src;
+			document.getElementById("mainimage").alt = document.getElementById("hiddenimage").alt;
+			
+			var randomQuote = ranQuote();
+		
+			// replace quote
+			$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
+			$('span[id="author"]').html("-" + randomQuote.author );
+			
+			$('div[id="quotearea"]').fadeIn("slow");
+			$(this).fadeIn("slow", function(){
+			
+				// get next random image
+				var randomWidescreenImage = getRandomWidescreenImage()
+				document.getElementById("hiddenimage").src = randomWidescreenImage.url;
+				document.getElementById("hiddenimage").alt = randomWidescreenImage.name;
+				
+			});
+			
+		});
+		
+		/*
+		$('div[id=pageContent]').fadeOut("slow", function() {
 
-function ranQuote() {
-	var ranNum = Math.floor( Math.random() * quotes.length );
-	return(quotes[ranNum]);
-}
+			// replace image
+			document.getElementById("mainimage").src = document.getElementById("hiddenimage").src;
+			document.getElementById("mainimage").alt = document.getElementById("hiddenimage").alt;
+		
+			var randomQuote = ranQuote();
+		
+			// replace quote
+			$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
+			$('span[id="author"]').html("-" + randomQuote.author );
+			
+			$('div[id=pageContent]').fadeIn("slow", function() {
+				
+				// get next random image
+				var randomWidescreenImage = getRandomWidescreenImage()
+				document.getElementById("hiddenimage").src = randomWidescreenImage.url;
+				document.getElementById("hiddenimage").alt = randomWidescreenImage.name;
+				
+			});
+			
+		});
+		*/
+		
+	}
+	
+	
+	setInterval( "refreshPageContent()", 10000 );	
+	
 
-var randomQuote = ranQuote();
-
-document.write("<BLOCKQUOTE><I>" + randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") + "</I><BR><BR>- " + randomQuote.author + "</BLOCKQUOTE>");
-
-// Hello, my name is Daniel Caldwell and this is my website. 
-
-//-->
-</script>
-
-</td>
-</tr>
-</Table>
-
-</td>
-</tr>
-</Table>
-
+</script>	
 </BODY>
 </HTML>
