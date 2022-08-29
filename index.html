@@ -10,7 +10,6 @@
 <DIV id="pageContent" class="pagediv">
 
 	<img id="mainimage" class="fullImage">
-	<img id="hiddenimage" class="hiddenImage">
 	
 	<div class="fullScreenQuoteArea" id="quotearea">
 		<span id="quote" class="quote">quote</span> 
@@ -25,9 +24,16 @@
 <script type="text/javascript" src="quotelist.js"></script>
 <script type="text/javascript">
 
-
-	var currentdate = 0;
-	var core = 0;
+	// ---- data members
+	var m_isPanoramaScrolling = false;
+	var m_panoramicIntervalId = NaN;
+	var m_refreshPageIntervalId = NaN;
+	var m_nextImage = new Image();
+	var m_nextImageName = "";
+	
+	var m_scrollDirection = "none";
+	
+	/// ---- private functions
 	
 	function getRandomWidescreenImage() {
 	  
@@ -41,69 +47,279 @@
 	}
 	
 
-	var randomQuote = ranQuote();
-
-	// replace quote
-	$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
-	$('span[id="author"]').html("-" + randomQuote.author );
-			
 	
-	if ( screen.height >= 768 && screen.width >= 1366){
-		// widescreen
-		var randomWidescreenImage = getRandomWidescreenImage()
-		document.getElementById("mainimage").src = randomWidescreenImage.url;
-		document.getElementById("mainimage").alt = randomWidescreenImage.name;
+	function doesImageNeedToScroll(){
 		
+		if ( "none" ==  m_scrollDirection ){
+			return false;
+		} else if ("horizontal" == m_scrollDirection ){
+			// check right side to see if it is within the edge
+			var image = document.getElementById("mainimage");
 		
-		var randomWidescreenImage = getRandomWidescreenImage()
-		document.getElementById("hiddenimage").src = randomWidescreenImage.url;
-		document.getElementById("hiddenimage").alt = randomWidescreenImage.name;
+			var left = parseInt( image.style.left );
+			if ( isNaN(left)){ left = 0; }
+		
+			var right = parseInt (image.clientWidth ) + left; // get the right side's location
+			var windowWidth = $(window).width();
+			if ( right <= windowWidth ){
+				return false;
+			} else {
+				return true;
+			}
 			
+		} else if ( "vertical" == m_scrollDirection ){
+			
+			// check image to see if bottom is above the bottom of the window.
+			var image = document.getElementById("mainimage");
+		
+			var top = parseInt( image.style.top );
+			if ( isNaN(top)){ top = 0; }
+		
+			var bottom = parseInt (image.clientHeight ) + top; // get the right side's location
+			var windowHeight = $(window).height();
+			
+			if ( bottom <= windowHeight ){
+				return false;
+			} else {
+				return true;
+			}
+			
+		} else {
+			var crapHappened = true;
+		}
+		
 	}
 	
-	
-	// Event binding for resizing the window
-	$(window).resize( function() {
+	function scrollPanoramicImage(){
 		
-		document.getElementById("mainimage").width = $(window).width();
-		document.getElementById("mainimage").height = $(window).height();
+		var image = document.getElementById("mainimage")
+		
+		if ( "horizontal" == m_scrollDirection ){
+		
+			var left = parseInt( image.style.left );
+			if ( isNaN(left)){ left = 0; }
+			image.style.left = (left - 1) + "px";
+			
+		} else if ( "vertical" == m_scrollDirection){
+			
+			var top = parseInt( image.style.top );
+			if ( isNaN(top)){ top = 0; }
+			image.style.top = (top - 1) + "px";
+			
+		} else {
+			var crapHappened = true;
+		}
+		
+	} // scroll image
 	
-	});
 	
-	function replaceImage(){
+	// will fit the image height or width... 
+	function fitMainImage(){
+		
+		var windowHeight = $(window).height();
+		var windowWidth = $(window).width();
+		
+		// reset image to left (in case it was scrolled before...
+		var image = document.getElementById("mainimage");
+		
+		image.style.left = "0px";
+		image.style.top = "0px";
+		image.style.right = windowWidth + "px";
+		image.style.bottom = windowHeight + "px";
+		
+		var windowAspect = "wide";
+		if ( windowWidth > windowHeight ){
+			windowAspect = "wide";
+		} else {
+			windowAspect = "portrait";
+		}
+		
+		
+		var imageAspect = "wide";
+		if ( image.naturalWidth > image.naturalHeight ){
+			imageAspect = "wide";
+		} else {
+			imageAspect = "portrait";
+		}
+		
+		
+		var imageScale = "height";
+		if ( imageAspect == windowAspect ){
+			if ( imageAspect == "wide" ){
+				// we have a wide image on a wide screen, fit the height
+				imageScale = "height";
+			} else {
+				// we have a portrait image on a portrait screen, fit the width
+				imageScale = "width";
+			}
+		} else {
+			if ( imageAspect == "portrait"){
+				// we have a portrait image on a wide screen, fit the width
+				imageScale = "width";
+			} else {
+				// we have a widescreen image on a portrait screen, fit the height
+				imageScale = "height";
+			}
+		}
+		
+		
+		// scale the first side of the image
+		if ( imageScale == "height" ){
+			image.height = windowHeight;
+		} else {
+			image.width = windowWidth;
+		}
+		
+		// check to see if we need to scale up now...
+		if ( imageScale == "height" ){
+			// check width
+			if ( image.naturalWidth <= windowWidth ){
+				image.width = windowWidth;
+				m_scrollDirection = "none";
+			} else {
+				image.width = image.naturalWidth;
+				m_scrollDirection = "horizontal";
+			}
+		} else {
+			// check height
+			if ( image.naturalHeight <= windowHeight ){
+				image.height = windowHeight;
+				m_scrollDirection = "none";
+			} else {
+				image.height = image.naturalHeight;
+				m_scrollDirection = "vertical";
+			}
+		}
+		
+		// the image should now be scaled somewhat correct. It may be better in the future to scale it to fit a scaled size
+		// rather than the natural size on the side that is scrolling...
+	
+	} // fit image
+	
+	
+	function getNextImage(){
+	
+		// get next random image
+		var randomWidescreenImage = getRandomWidescreenImage()
+		m_nextImage = new Image();
+		m_nextImage.src = randomWidescreenImage.url;
+		m_nextImage.alt = randomWidescreenImage.name;
+		
+	}
+		
+	function replaceMainImage(){
 		// fade out 
 		$('img[id=mainimage]').fadeOut("slow", function(){
 
-			// replace image
-			document.getElementById("mainimage").src = document.getElementById("hiddenimage").src;
-			document.getElementById("mainimage").alt = document.getElementById("hiddenimage").alt;
+			setMainImage(false);
 		
 			$(this).fadeIn("slow");
 			
-			// get next random image
-			var randomWidescreenImage = getRandomWidescreenImage()
-			document.getElementById("hiddenimage").src = randomWidescreenImage.url;
-			document.getElementById("hiddenimage").alt = randomWidescreenImage.name;
+			getNextImage();
 				
 		});
 	}
 	
+	
+	
+	function setRandomQuote(){
+		var randomQuote = ranQuote();
+		// replace quote
+		$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
+		$('span[id="author"]').html("-" + randomQuote.author );
+	}
+	
+	
+	
+	function setMainImage(isFirstTime ){
+
+		if ( isFirstTime ){
+			
+			document.getElementById("mainimage").visible = false;
+		
+			var randomWidescreenImage = getRandomWidescreenImage();
+			document.getElementById("mainimage").src = randomWidescreenImage.url;
+			document.getElementById("mainimage").alt = randomWidescreenImage.name;
+			
+			$('img[id="mainimage"]').fadeIn("slow");
+			
+			getNextImage();
+			
+			
+		} else {
+		
+			var image = document.getElementById("mainimage");
+			image.src = "";
+			image.alt = "";
+			
+			image.src = m_nextImage.src;
+			image.alt = m_nextImage.alt;
+			nextImage = null;
+
+		}
+		
+		fitMainImage();
+		
+	}
+	
+	
+	
+	
 	function replaceQuote(){
 	
-	
 		$('div[id="quotearea"]').fadeOut("slow", function(){
-
-			var randomQuote = ranQuote();
 		
-			// replace quote
-			$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
-			$('span[id="author"]').html("-" + randomQuote.author );
+			setRandomQuote();
 			
 			$('div[id="quotearea"]').fadeIn("slow");
 			
 		});
 		
 	}
+	
+	
+	
+	function refreshPageContent(){
+	
+	
+		$('div[id="quotearea"]').fadeOut("slow");
+		$('img[id="mainimage"]').fadeOut("slow", function(){
+
+			setMainImage(false);
+			setRandomQuote();
+			
+			$('div[id="quotearea"]').fadeIn("slow");
+			$(this).fadeIn("slow", function(){
+			
+				// get next random image
+				var randomWidescreenImage = getRandomWidescreenImage()
+				m_nextImage = new Image();
+				m_nextImage.src = randomWidescreenImage.url;
+				m_nextImage.alt = randomWidescreenImage.name;
+			
+			});
+		
+		});
+		
+		
+	} // refresh page content
+	
+	
+	
+	// ---------- Inital Document setup
+	setRandomQuote();
+	setMainImage(true);
+	setInterval( "runEventLoop()", 25);
+	
+	
+	// ---------- Event Bindings
+	
+	// Event binding for resizing the window
+	$(window).resize( function() {
+		
+		fitMainImage();
+	
+	});
 	
 	
 	// Event binding for clicking on the image	
@@ -114,64 +330,29 @@
 	});
 	
 	
+	// --------- Event Loop
+	// counter for 50 milliseconds, if we are scrolling, we don't increment, if we are not, then we count to 200 and then set the counter
+	// back to zero and refresh the page. 
+	var m_counter = 0;
+	function runEventLoop(){
 	
-	function refreshPageContent(){
-	
-	
-		$('div[id="quotearea"]').fadeOut("slow");
-		$('img[id="mainimage"]').fadeOut("slow", function(){
-
-			// replace image
-			document.getElementById("mainimage").src = document.getElementById("hiddenimage").src;
-			document.getElementById("mainimage").alt = document.getElementById("hiddenimage").alt;
-			
-			var randomQuote = ranQuote();
+		if ( doesImageNeedToScroll() ){
+			scrollPanoramicImage();
+		} else {
+			m_counter ++;
+		}
 		
-			// replace quote
-			$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
-			$('span[id="author"]').html("-" + randomQuote.author );
+		if ( m_counter == 200 ){
+			m_counter = 0;
+			refreshPageContent();
+		}
 			
-			$('div[id="quotearea"]').fadeIn("slow");
-			$(this).fadeIn("slow", function(){
-			
-				// get next random image
-				var randomWidescreenImage = getRandomWidescreenImage()
-				document.getElementById("hiddenimage").src = randomWidescreenImage.url;
-				document.getElementById("hiddenimage").alt = randomWidescreenImage.name;
-				
-			});
-			
-		});
-		
-		/*
-		$('div[id=pageContent]').fadeOut("slow", function() {
-
-			// replace image
-			document.getElementById("mainimage").src = document.getElementById("hiddenimage").src;
-			document.getElementById("mainimage").alt = document.getElementById("hiddenimage").alt;
-		
-			var randomQuote = ranQuote();
-		
-			// replace quote
-			$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
-			$('span[id="author"]').html("-" + randomQuote.author );
-			
-			$('div[id=pageContent]').fadeIn("slow", function() {
-				
-				// get next random image
-				var randomWidescreenImage = getRandomWidescreenImage()
-				document.getElementById("hiddenimage").src = randomWidescreenImage.url;
-				document.getElementById("hiddenimage").alt = randomWidescreenImage.name;
-				
-			});
-			
-		});
-		*/
-		
 	}
 	
 	
-	setInterval( "refreshPageContent()", 10000 );	
+	
+	
+		
 	
 
 </script>	
