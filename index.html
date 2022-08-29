@@ -1,0 +1,80 @@
+<HTML>
+<HEAD>
+<TITLE>Daniel Caldwell's Website</TITLE>
+<link href="site.css" rel="stylesheet" type="text/css">
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></HEAD>
+<BODY>
+
+<Table width="100%" height="100%">
+<tr>
+<td align="center" valign="middle">
+
+<table width="800">
+<tr>
+<td>
+
+<script type="text/javascript" src="imagelist.js"></script>
+<script type="text/javascript" src="quotelist.js"></script>
+<script language="Javascript">
+<!--
+
+// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
+
+var currentdate = 0;
+var core = 0;
+
+function ranImage() {
+  
+  var ranNum = Math.floor( Math.random() * images.length );
+  return(images[ranNum]);
+}
+
+function changeimage(){
+	var randomImage = ranImage();
+	document.images['PANORAMIC'].src = randomImage.url;
+	document.images['PANORAMIC'].alt = randomImage.name;
+}
+
+
+var randomImage = ranImage();
+
+document.write("<IMG NAME='PANORAMIC' src='" + randomImage.url + "' border=2 alt='" + randomImage.name + "' onmousedown=if(event.button!=2){changeimage();}else{window.open('http://www.danielcaldwell.com/images.html');}  > ")
+
+//-->
+
+</script>
+
+</td>
+</tr>
+<tr>
+<td>
+
+
+<script language="Javascript">
+<!--
+
+function ranQuote() {
+	var ranNum = Math.floor( Math.random() * quotes.length );
+	return(quotes[ranNum]);
+}
+
+var randomQuote = ranQuote();
+
+document.write("<BLOCKQUOTE><I>" + randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") + "</I><BR><BR>- " + randomQuote.author + "</BLOCKQUOTE>");
+
+// Hello, my name is Daniel Caldwell and this is my website. 
+
+//-->
+</script>
+
+</td>
+</tr>
+</Table>
+
+</td>
+</tr>
+</Table>
+
+</BODY>
+</HTML>

@@ -1,0 +1,94 @@
+body {
+	color: #CCCCCC;
+	background-color: #333333;
+	margin: 0px;
+	padding: 0px;
+	border-right-width: 0px;
+	border-bottom-width: 0px;
+	border-left-width: 0px;
+}
+.hiddenImage{
+	height: 0px;
+	width: 0px;
+	visibility:hidden;
+}
+
+.panoramicImage {
+	border-style:solid;
+	border-top-width: 2px;
+	border-right-width: 2px;
+	border-bottom-width: 2px;
+	border-left-width: 2px;
+	border-top-color: #999999;
+	border-right-color: #999999;
+	border-bottom-color: #999999;
+	border-left-color: #999999;
+}
+a {
+	color: #999999;
+}
+blockquote {
+	color: #CCCCCC;
+}
+hr {
+	color: #999999;
+}
+
+table {
+	border-style: none;
+	padding: 0px;
+}
+
+td  {
+	padding:0; 
+	border:0;
+}
+
+.quote {
+	color: #CCCCCC;
+	font-style: italic;
+}
+.author {
+	color: #CCCCCC;
+}
+.fullImage{
+	background-color: #000000;
+	border-top-style: none;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	position: fixed;
+	visibility: visible;
+	left: 0px;
+	top: 0px;
+	text-align: left;
+	text-indent: 0px;
+	vertical-align: top;
+	margin: 0px;
+	padding: 0px;
+	border-top-width: 0px;
+	border-right-width: 0px;
+	border-bottom-width: 0px;
+	border-left-width: 0px;
+	overflow: hidden;
+	z-index:11;
+}
+
+
+.fullScreenQuoteArea{
+	background: rgba(0, 0, 0, 0.5);
+	position: fixed;
+	display: table;
+	margin-right:40px;
+	margin-top:40px;
+	margin-left:40px;
+	margin-bottom:40px;
+	
+	z-index:12;
+}
+
+.pagediv{
+	opacity:inherit;
+	filter:inherit;
+	z-index:10;
+}
