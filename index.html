@@ -1,170 +1,173 @@
 <HTML>
-<HEAD>
-<TITLE>Daniel Caldwell's Website</TITLE>
-<link href="site.css" rel="stylesheet" type="text/css">
 
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></HEAD>
+<HEAD>
+	<TITLE>Daniel Caldwell's Website</TITLE>
+	<link href="site.css" rel="stylesheet" type="text/css">
+
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</HEAD>
+
 <BODY>
 
-<script type="text/javascript" src="imagelist.js"></script>
-<script type="text/javascript" src="quotelist.js"></script>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
-
-  
-  
-<table align="Center" height="99%">
-<TR valign="middle">
-<TD>
-
-<TABLE id="pageContent" align="Center" width="800">
-<TR>
-<TD>
-
-
-<div style="height:204px;width:804px;">
-
-<img id="Panoramic" class="panoramicImage"> 
-
-</div>
+	<script type="text/javascript" src="imagelist.js"></script>
+	<script type="text/javascript" src="quotelist.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 
 
 
-</TD>
-</TR>
+	<table align="Center" height="99%">
+		<TR valign="middle">
+			<TD>
 
-<TR>
-<TD align="right">
-<font size=1><a href="images.html" color="lightgray">All Images</a></font>
-</TD>
-</TR>
-
-<TR>
-<TD>
-<hr noshade>
-</td>
-</tr>
-
-<TR>
-<TD>
-
-<img id="HiddenPanoramic" class=hiddenImage>
+				<TABLE id="pageContent" align="Center" width="800">
+					<TR>
+						<TD>
 
 
+							<div style="height:204px;width:804px;">
+
+								<img id="Panoramic" class="panoramicImage">
+
+							</div>
+
+
+
+						</TD>
+					</TR>
+
+					<TR>
+						<TD align="right">
+							<font size=1><a href="images.html" color="lightgray">All Images</a></font>
+						</TD>
+					</TR>
+
+					<TR>
+						<TD>
+							<hr noshade>
+						</td>
+					</tr>
+
+					<TR>
+						<TD>
+
+							<img id="HiddenPanoramic" class=hiddenImage>
 
 
 
 
-</TD>
-</TR>
-</TABLE>
-</TD>
-</TR>
-</table>
 
 
-<script language="Javascript">
-<!--
-	
-	// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
-	
-	var currentdate = 0;
-	var core = 0;
-	
-	function ranImage() {
-	  
-	  var ranNum = Math.floor( Math.random() * images.length );
-	  return(images[ranNum]);
-	}
-	
-	
-	function ranQuote() {
-		var ranNum = Math.floor( Math.random() * quotes.length );
-		return(quotes[ranNum]);
-	}
-	
-	
-	
-	function refreshContent(){
-		$('table[id="pageContent"]').fadeOut("slow", function(){
-		
-			// replace image
-			document.getElementById('Panoramic').src = document.images['HiddenPanoramic'].src;
-			document.getElementById('Panoramic').alt = document.images['HiddenPanoramic'].alt;
-			
-			var randomQuote = ranQuote();
-		
-			// replace quote
-			$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
-			$('span[id="author"]').html("-" + randomQuote.author );
-		
-			$('table[id="pageContent"]').fadeIn("slow");
-			
-		});
-			
-	}
+						</TD>
+					</TR>
+				</TABLE>
+			</TD>
+		</TR>
+	</table>
 
-	
-	$(document).ready( afterDocumentReady() );
-	
-	
-	
-	function afterDocumentReady() {
-	
-		// when panoramic is loaded, load the next image as well. 
-		$('img[id="Panoramic"]').bind("load", function () { 
-			$(this).fadeIn( "slow", function(){
-				
-				var randomImage = ranImage();
-				document.images['HiddenPanoramic'].src = randomImage.url;
-				document.images['HiddenPanoramic'].alt = randomImage.name;
-				
-			}); 
-		});
-		
-		// when the panoramic is clicked, switch images with the previously loaded hidden one. 
-		$('img[id="Panoramic"]').click( function(event) {
-		
-			event.preventDefault();
-			
-			$(this).fadeOut("slow", function(){
-				
-				document.images['Panoramic'].src = document.images['HiddenPanoramic'].src;
-				document.images['Panoramic'].alt = document.images['HiddenPanoramic'].alt;
-				
-				
+
+	<script language="Javascript">
+
+		// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
+
+		var currentdate = 0;
+		var core = 0;
+
+		function ranImage() {
+
+			var ranNum = Math.floor(Math.random() * images.length);
+			return (images[ranNum]);
+		}
+
+
+		function ranQuote() {
+			var ranNum = Math.floor(Math.random() * quotes.length);
+			return (quotes[ranNum]);
+		}
+
+
+
+		function refreshContent() {
+			$('table[id="pageContent"]').fadeOut("slow", function () {
+
+				// replace image
+				document.getElementById('Panoramic').src = document.images['HiddenPanoramic'].src;
+				document.getElementById('Panoramic').alt = document.images['HiddenPanoramic'].alt;
+
+				var randomQuote = ranQuote();
+
+				// replace quote
+				$('span[id="quote"]').html(randomQuote.quote.replace(new RegExp("\n", "g"), "<BR>"));
+				$('span[id="author"]').html("-" + randomQuote.author);
+
+				$('table[id="pageContent"]').fadeIn("slow");
+
 			});
-			
-			
-		});
-		
-		// get the initial images, visible, and hidden
-		var randomImage = ranImage();
-		document.images['Panoramic'].src = randomImage.url;
-		document.images['Panoramic'].alt = randomImage.name;
-		
-		var randomImage = ranImage();
-		document.images['HiddenPanoramic'].src = randomImage.url;
-		document.images['HiddenPanoramic'].alt = randomImage.name;
-		
-		var randomQuote = ranQuote();
-		
-		// replace quote
-		$('span[id="quote"]').html( randomQuote.quote.replace( new RegExp("\n", "g"), "<BR>") );
-		$('span[id="author"]').html("-" + randomQuote.author );
-		
-		
-		
-		// set the page to refresh every 15 seconds...
-		setInterval( "refreshContent()", 15000);
-			
-			
-	} // after document ready
 
-</script>
+		}
+
+
+		$(document).ready(afterDocumentReady());
+
+
+
+		function afterDocumentReady() {
+
+			// when panoramic is loaded, load the next image as well. 
+			$('img[id="Panoramic"]').bind("load", function () {
+				$(this).fadeIn("slow", function () {
+
+					var randomImage = ranImage();
+					document.images['HiddenPanoramic'].src = randomImage.url;
+					document.images['HiddenPanoramic'].alt = randomImage.name;
+
+				});
+			});
+
+			// when the panoramic is clicked, switch images with the previously loaded hidden one. 
+			$('img[id="Panoramic"]').click(function (event) {
+
+				event.preventDefault();
+
+				$(this).fadeOut("slow", function () {
+
+					document.images['Panoramic'].src = document.images['HiddenPanoramic'].src;
+					document.images['Panoramic'].alt = document.images['HiddenPanoramic'].alt;
+
+
+				});
+
+
+			});
+
+			// get the initial images, visible, and hidden
+			var randomImage = ranImage();
+			document.images['Panoramic'].src = randomImage.url;
+			document.images['Panoramic'].alt = randomImage.name;
+
+			var randomImage = ranImage();
+			document.images['HiddenPanoramic'].src = randomImage.url;
+			document.images['HiddenPanoramic'].alt = randomImage.name;
+
+			var randomQuote = ranQuote();
+
+			// replace quote
+			$('span[id="quote"]').html(randomQuote.quote.replace(new RegExp("\n", "g"), "<BR>"));
+			$('span[id="author"]').html("-" + randomQuote.author);
+
+
+
+			// set the page to refresh every 15 seconds...
+			setInterval("refreshContent()", 15000);
+
+
+		} // after document ready
+
+	</script>
 
 
 
 
 
 </BODY>
+
 </HTML>
