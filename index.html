@@ -81,6 +81,10 @@
 
 		function refreshContent() {
 
+			// get the initial images, visible, and hidden
+			if (intervalID){ 
+				clearInterval(intervalID);
+			}
 			const container = document.getElementById('artwork-container');
 
     		// Get the transition duration in milliseconds from the CSS
@@ -110,6 +114,8 @@
 					
 					container.classList.remove('hidden');
 					
+					startInterval();
+
 				}
 
 			}, fadeDuration);
@@ -128,6 +134,7 @@
 
 			});
 
+
 		}
 
 		function startInterval(){
@@ -137,7 +144,7 @@
 			}
 			intervalID = setInterval(() => {
 				refreshContent();
-			}, 30000);
+			}, 20000);
 
 		}
 
