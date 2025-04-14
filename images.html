@@ -7,10 +7,7 @@
 
 <BODY>
 
-
-	<TABLE align="Center">
-		<TR>
-			<TD>
+	<div class="container">
 
 				<script type="text/javascript" src="imagelist.js"></script>
 				<script language="Javascript">
@@ -20,38 +17,42 @@
 					var i = 0;
 
 					for (i = 0; i < images.length; i++) {
-						document.write("<IMG SRC='" + images[i].url + "' border=2 alt='" + images[i].name + "' > ")
-						document.write("<P align='center'>" + images[i].name + "</P>");
-						document.write("<hr noshade>");
-						document.write("<BR>");
-						document.write("<BR>");
+						document.write("<div class='artwork-container'>");
+						document.write("<IMG SRC='" + images[i].url + "' class='artwork-display' alt='" + images[i].name + "' > ")
+						document.write("<div class='artwork-label'>");
+						document.write("<div class='artwork-title'>" + images[i].title + "</div>");
+						document.write("<div class='artwork-date'>" + images[i].date + "</div>");
+						document.write("<div class='artwork-author'>" + images[i].author + "</div>");
+						document.write("<div class='artwork-author-lifetime'>" + images[i].author_lifetime+ "</div>");
+						document.write("<div class='artwork-medium'>" + images[i].medium + "</div>");
+						document.write("<div class='artwork-description'>" + images[i].description + "</div>");
+						document.write("</div>");
+						document.write("<div class='artwork-separator'></div>")
+						document.write("</div>");
+				
 					}
 
+
+								
+					document.addEventListener('DOMContentLoaded', () => {
+			
+						// Check for saved user preference
+						const savedTheme = localStorage.getItem('theme');
+						
+						// Set initial theme
+						if (savedTheme) {
+							document.documentElement.setAttribute('data-theme', savedTheme);
+						}
+
+					});
+					
 				</script>
 
 
 
+	
+	</div>
 
-			</TD>
-		</TR>
-
-		<TR>
-			<TD>
-				&nbsp
-			</TD>
-		</TR>
-
-		<TR>
-			<TD>
-				&nbsp
-			</td>
-		</tr>
-
-		<TR>
-			<TD>
-			</TD>
-		</TR>
-	</TABLE>
 </BODY>
 
 </HTML>

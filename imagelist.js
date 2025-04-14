@@ -1,7 +1,14 @@
 // This code was created by me, Daniel Caldwell, and it is available to the public domain.
-function ImageInfo( url, name ){
-	this.url = url;
-	this.name = name;
+class ImageInfo {
+	constructor(url, title, date = "Unknown Date", author = "Daniel Caldwell", author_lifetime = "19??-????", medium = "Digital Image on Digital Screen", description = "Undescribed artwork") {
+		this.url = url;
+		this.title = title;
+		this.date = date;
+		this.author = author;
+		this.author_lifetime = author_lifetime;
+		this.medium = medium;
+		this.description = description;
+	}
 }
 
 var images = new Array(24);

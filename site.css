@@ -1,47 +1,202 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --settings-bg: #f5f5f5;
+    --settings-border: #e0e0e0;
+}
+
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --settings-bg: #2d2d2d;
+    --settings-border: #404040;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-	color: #CCCCCC;
-	background-color: #333333;
-	margin: 0px;
-	padding: 0px;
-	border-right-width: 0px;
-	border-bottom-width: 0px;
-	border-left-width: 0px;
-}
-.hiddenImage{
-	height: 0px;
-	width: 0px;
-	visibility:hidden;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-.panoramicImage {
-	border-style:solid;
-	border-top-width: 2px;
-	border-right-width: 2px;
-	border-bottom-width: 2px;
-	border-left-width: 2px;
-	border-top-color: #999999;
-	border-right-color: #999999;
-	border-bottom-color: #999999;
-	border-left-color: #999999;
-}
 a {
-	color: #999999;
-}
-blockquote {
-	color: #CCCCCC;
-}
-hr {
-	color: #999999;
+	color: var(--text-color);
 }
 
-table {
-	border-style: none;
-	padding: 0px;
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
 }
 
-td  {
-	padding:0; 
-	border:0;
+
+.settings-bar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+
+
+.settings-button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+}
+
+.settings-button:hover {
+    background-color: var(--settings-bg);
+}
+
+.settings-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--settings-bg);
+    border: 1px solid var(--settings-border);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-top: 0rem;
+    min-width: 150px;
+}
+
+.settings-menu.hidden {
+    display: none;
+}
+
+.settings-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0rem;
+    font-size: 0.9rem;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 1.75rem;
+    height: 1rem;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 0.8rem;
+    width: 0.8rem;
+    left: 0.1rem;
+    bottom: 0.1rem;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(0.75rem);
+}
+
+
+.artwork-container {
+    width: 100%;
+    text-align: center;
+    max-width: 800px;
+    margin: auto;
+    transition: opacity 1s ease;
+}
+
+#artwork-container.hidden {
+    opacity: 0;
+}
+
+.artwork-display {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0px;
+    border: 2px solid black;
+    padding: 10px;
+    background-color: var(--settings-bg);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.artwork-label {
+    margin-top: 0.8rem;
+    padding: 0.6rem;
+    background-color: var(--settings-bg);
+    border-radius: 0px;
+    text-align: left;
+    border: 2px solid black;
+    max-width: 400px;
+    margin-left: auto;
+}
+
+.artwork-title{ 
+    font-size: 1rem;
+    font-weight: bold
+}
+
+.artwork-date{ 
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.artwork-author{
+    font-size: 1rem;
+}
+
+.artwork-author-lifetime{
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.artwork-medium{
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
+}
+.artwork-description{
+    font-size: 0.7rem;
+}
+
+.artwork-separator{
+	margin-bottom: 3rem;
 }
 
 .quote {

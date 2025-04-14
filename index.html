@@ -1,13 +1,19 @@
-<HTML>
+<!DOCTYPE html>
+<HTML lang="en">
 
 <HEAD>
 	<TITLE>Daniel Caldwell's Website</TITLE>
-	<link href="site.css" rel="stylesheet" type="text/css">
-
+	
 	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
 
-	<!-- favicon -->
+	<!-- favicon-->
 	<link rel="icon" href="favicon.ico" type="image/x-icon">
+
+	<!-- styles -->
+	<link href="site.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 </HEAD>
 
@@ -17,56 +23,40 @@
 	<script type="text/javascript" src="quotelist.js"></script>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 
+    <div class="container">
 
 
-	<table align="Center" height="99%">
-		<TR valign="middle">
-			<TD>
+		<div class="settings-bar">
+			<button id="settingsButton" class="settings-button">
+				<i class="fas fa-bars"></i>
+			</button>
+			<div id="settingsMenu" class="settings-menu hidden">
+				<div class="settings-option">
+					<label for="darkModeToggle">Dark Mode</label>
+					<label class="switch">
+						<input type="checkbox" id="darkModeToggle">
+						<span class="slider round"></span>
+					</label>
+				</div>
+			</div>
+		</div>
 
-				<TABLE id="pageContent" align="Center" width="800">
-					<TR>
-						<TD>
+		<div id="artwork-container" class="artwork-container">
+			<img alt="Museum Artifact" id="artwork" class="artwork-display">
+			<div class="artwork-label">
+				<div id="artwork-title" class="artwork-title">Bryce Canyon</div>
+				<div id="artwork-date" class="artwork-date">2007</div>
+				<div id="artwork-author" class="artwork-author">Daniel Caldwell</div>
+				<div id="artwork-author-lifetime" class="artwork-author-lifetime">American (19??-????)</div>
+				<div id="artwork-medium" class="artwork-medium">Stitched Panoramic Photo on Digital Screen</div>
+				<div id="artwork-description" class="artwork-description">A panoramic view of Bryce Canyon from Sunrise Point.</div>
+			</div>
+		</div>
 
+		
+		<a href="images.html">All Images</a>
 
-							<div style="height:204px;width:804px;">
-
-								<img id="Panoramic" class="panoramicImage">
-
-							</div>
-
-
-
-						</TD>
-					</TR>
-
-					<TR>
-						<TD align="right">
-							<font size=1><a href="images.html" color="lightgray">All Images</a></font>
-						</TD>
-					</TR>
-
-					<TR>
-						<TD>
-							<hr noshade>
-						</td>
-					</tr>
-
-					<TR>
-						<TD>
-
-							<img id="HiddenPanoramic" class=hiddenImage>
-
-
-
-
-
-
-						</TD>
-					</TR>
-				</TABLE>
-			</TD>
-		</TR>
-	</table>
+	</div>
 
 
 	<script language="Javascript">
@@ -75,6 +65,7 @@
 
 		var currentdate = 0;
 		var core = 0;
+		var intervalID = 0;
 
 		function ranImage() {
 
@@ -88,15 +79,45 @@
 			return (quotes[ranNum]);
 		}
 
-
-
 		function refreshContent() {
+
+			const container = document.getElementById('artwork-container');
+
+    		// Get the transition duration in milliseconds from the CSS
+    		const fadeDuration = getComputedStyle(container)
+                            .getPropertyValue('transition-duration')
+                            .replace('s', '') * 1000;  // Convert seconds to milliseconds
+
+			container.classList.add('hidden');
+
+			randomArtwork = ranImage();
+
+			const newImage = new Image();
+
+			setTimeout(()=>{
+
+				newImage.src = randomArtwork.url;
+
+				newImage.onload = function(){
+					document.getElementById('artwork').src = newImage.src;
+					document.getElementById('artwork').alt = randomArtwork.title;
+					document.getElementById('artwork-title').innerText = randomArtwork.title;
+					document.getElementById('artwork-date').innerText = randomArtwork.date;
+					document.getElementById('artwork-author').innerText = randomArtwork.author;
+					document.getElementById('artwork-author-lifetime').innerText = randomArtwork.author_lifetime;
+					document.getElementById('artwork-medium').innerText = randomArtwork.medium;
+					document.getElementById('artwork-description').innerText = randomArtwork.description;
+					
+					container.classList.remove('hidden');
+					
+				}
+
+			}, fadeDuration);
+
+			
 			$('table[id="pageContent"]').fadeOut("slow", function () {
 
-				// replace image
-				document.getElementById('Panoramic').src = document.images['HiddenPanoramic'].src;
-				document.getElementById('Panoramic').alt = document.images['HiddenPanoramic'].alt;
-
+					
 				var randomQuote = ranQuote();
 
 				// replace quote
@@ -109,48 +130,41 @@
 
 		}
 
+		function startInterval(){
+			// reset interval
+			if (intervalID){ 
+				clearInterval(intervalID);
+			}
+			intervalID = setInterval(() => {
+				refreshContent();
+			}, 30000);
 
-		$(document).ready(afterDocumentReady());
-
-
-
-		function afterDocumentReady() {
-
-			// when panoramic is loaded, load the next image as well. 
-			$('img[id="Panoramic"]').bind("load", function () {
-				$(this).fadeIn("slow", function () {
-
-					var randomImage = ranImage();
-					document.images['HiddenPanoramic'].src = randomImage.url;
-					document.images['HiddenPanoramic'].alt = randomImage.name;
-
-				});
-			});
-
-			// when the panoramic is clicked, switch images with the previously loaded hidden one. 
-			$('img[id="Panoramic"]').click(function (event) {
-
-				event.preventDefault();
-
-				$(this).fadeOut("slow", function () {
-
-					document.images['Panoramic'].src = document.images['HiddenPanoramic'].src;
-					document.images['Panoramic'].alt = document.images['HiddenPanoramic'].alt;
+		}
 
 
-				});
-
-
-			});
+		document.addEventListener('DOMContentLoaded', () => {
 
 			// get the initial images, visible, and hidden
+			if (intervalID){ 
+				clearInterval(intervalID);
+			}
+			startInterval();
+			
 			var randomImage = ranImage();
-			document.images['Panoramic'].src = randomImage.url;
-			document.images['Panoramic'].alt = randomImage.name;
+			document.images['artwork'].src = randomImage.url;
+			document.images['artwork'].alt = randomImage.name;
 
-			var randomImage = ranImage();
-			document.images['HiddenPanoramic'].src = randomImage.url;
-			document.images['HiddenPanoramic'].alt = randomImage.name;
+
+			// when the panoramic is clicked, switch images with the previously loaded hidden one. 
+			$('img[id="artwork"]').click(function (event) {
+
+				event.preventDefault();
+				refreshContent();
+				
+				// set the page to refresh every 15 seconds...
+				
+			});
+
 
 			var randomQuote = ranQuote();
 
@@ -159,18 +173,54 @@
 			$('span[id="author"]').html("-" + randomQuote.author);
 
 
-
-			// set the page to refresh every 15 seconds...
-			setInterval("refreshContent()", 15000);
-
-
-		} // after document ready
-
+			const settingsButton = document.getElementById('settingsButton');
+			const settingsMenu = document.getElementById('settingsMenu');
+			const darkModeToggle = document.getElementById('darkModeToggle');
+			
+			// Check system preference
+			const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+			
+			
+			// Toggle settings menu
+			settingsButton.addEventListener('click', () => {
+				settingsMenu.classList.toggle('hidden');
+			});
+			
+			// Close settings menu when clicking outside
+			document.addEventListener('click', (event) => {
+				if (!settingsButton.contains(event.target) && !settingsMenu.contains(event.target)) {
+					settingsMenu.classList.add('hidden');
+				}
+			});
+						
+			// Check for saved user preference
+			const savedTheme = localStorage.getItem('theme');
+			
+			// Set initial theme
+			if (savedTheme) {
+				document.documentElement.setAttribute('data-theme', savedTheme);
+				darkModeToggle.checked = savedTheme === 'dark';
+			} else {
+				document.documentElement.setAttribute('data-theme', prefersDarkMode ? 'dark' : 'light');
+				darkModeToggle.checked = prefersDarkMode;
+			}
+			// Handle dark mode toggle
+			darkModeToggle.addEventListener('change', () => {
+				const newTheme = darkModeToggle.checked ? 'dark' : 'light';
+				document.documentElement.setAttribute('data-theme', newTheme);
+				localStorage.setItem('theme', newTheme);
+			});
+			
+			// Listen for system theme changes
+			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+				if (!localStorage.getItem('theme')) {
+					const newTheme = e.matches ? 'dark' : 'light';
+					document.documentElement.setAttribute('data-theme', newTheme);
+					darkModeToggle.checked = e.matches;
+				}
+			});
+		}); 
 	</script>
-
-
-
-
 
 </BODY>
 
