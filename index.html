@@ -78,6 +78,17 @@
 			return (quotes[ranNum]);
 		}
 
+		function applyArtwork(artwork) {
+			document.getElementById('artwork').src = artwork.url;
+			document.getElementById('artwork').alt = artwork.title;
+			document.getElementById('artwork-title').innerText = artwork.title;
+			document.getElementById('artwork-date').innerText = artwork.date;
+			document.getElementById('artwork-author').innerText = artwork.author;
+			document.getElementById('artwork-author-lifetime').innerText = artwork.author_lifetime;
+			document.getElementById('artwork-medium').innerText = artwork.medium;
+			document.getElementById('artwork-description').innerText = artwork.description;
+		}
+
 		function refreshContent() {
 
 			// get the initial images, visible, and hidden
@@ -99,15 +110,8 @@
 				newImage.src = randomArtwork.url;
 
 				newImage.onload = function(){
-					document.getElementById('artwork').src = newImage.src;
-					document.getElementById('artwork').alt = randomArtwork.title;
-					document.getElementById('artwork-title').innerText = randomArtwork.title;
-					document.getElementById('artwork-date').innerText = randomArtwork.date;
-					document.getElementById('artwork-author').innerText = randomArtwork.author;
-					document.getElementById('artwork-author-lifetime').innerText = randomArtwork.author_lifetime;
-					document.getElementById('artwork-medium').innerText = randomArtwork.medium;
-					document.getElementById('artwork-description').innerText = randomArtwork.description;
-					
+					applyArtwork(randomArtwork);
+
 					container.classList.remove('hidden');
 					
 					startInterval();
@@ -117,18 +121,13 @@
 			}, fadeDuration);
 
 			
-			$('table[id="pageContent"]').fadeOut("slow", function () {
-
-					
-				var randomQuote = ranQuote();
-
-				// replace quote
-				$('span[id="quote"]').html(randomQuote.quote.replace(new RegExp("\n", "g"), "<BR>"));
-				$('span[id="author"]').html("-" + randomQuote.author);
-
-				$('table[id="pageContent"]').fadeIn("slow");
-
-			});
+			// TODO: To be decided if it should be removed or if quotes should intersperse the images
+			// $('table[id="pageContent"]').fadeOut("slow", function () {
+			// 	var randomQuote = ranQuote();
+			// 	$('span[id="quote"]').html(randomQuote.quote.replace(new RegExp("\n", "g"), "<BR>"));
+			// 	$('span[id="author"]').html("-" + randomQuote.author);
+			// 	$('table[id="pageContent"]').fadeIn("slow");
+			// });
 
 
 		}
@@ -153,9 +152,7 @@
 			}
 			startInterval();
 			
-			var randomImage = ranImage();
-			document.images['artwork'].src = randomImage.url;
-			document.images['artwork'].alt = randomImage.title;
+			applyArtwork(ranImage());
 
 
 			// when the panoramic is clicked, switch images with the previously loaded hidden one. 
@@ -169,11 +166,10 @@
 			});
 
 
-			var randomQuote = ranQuote();
-
-			// replace quote
-			$('span[id="quote"]').html(randomQuote.quote.replace(new RegExp("\n", "g"), "<BR>"));
-			$('span[id="author"]').html("-" + randomQuote.author);
+			// TODO: To be decided if it should be removed or if quotes should intersperse the images
+			// var randomQuote = ranQuote();
+			// $('span[id="quote"]').html(randomQuote.quote.replace(new RegExp("\n", "g"), "<BR>"));
+			// $('span[id="author"]').html("-" + randomQuote.author);
 
 
 			const settingsButton = document.getElementById('settingsButton');
