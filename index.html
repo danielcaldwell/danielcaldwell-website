@@ -86,10 +86,7 @@
 			}
 			const container = document.getElementById('artwork-container');
 
-    		// Get the transition duration in milliseconds from the CSS
-    		const fadeDuration = getComputedStyle(container)
-                            .getPropertyValue('transition-duration')
-                            .replace('s', '') * 1000;  // Convert seconds to milliseconds
+    		const fadeDuration = 1000; // matches transition: opacity 1s in site.css
 
 			container.classList.add('hidden');
 
