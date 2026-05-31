@@ -140,7 +140,7 @@ input:checked + .slider:before {
     text-align: center;
     max-width: 800px;
     margin: auto;
-    transition: opacity 1s ease;
+    transition: opacity 1s ease; /* must match fadeDuration in index.html */
 }
 
 #artwork-container.hidden {
