@@ -158,7 +158,7 @@ quotes.push(new QuoteInfo("Whatever principle of intelligence we attain unto in 
 quotes.push(new QuoteInfo("Remember the worth of souls is great in the sight of God", "Joseph Smith"));
 quotes.push(new QuoteInfo("Your silence gives consent. ", "Plato"));
 quotes.push(new QuoteInfo("Beware the barrenness of a busy life. ", "Socrates"));
-quotes.push(new QuoteInfo("Control thy passions lest they take vengence on thee.", "Epictetus"));
+quotes.push(new QuoteInfo("Control thy passions lest they take vengeance on thee.", "Epictetus"));
 quotes.push(new QuoteInfo("He is a wise man who does not grieve for the things which he has not, but rejoices for those which he has. ", "Epictetus"));
 quotes.push(new QuoteInfo("If evil be spoken of you and it be true, correct yourself, if it be a lie, laugh at it.", "Epictetus"));
 quotes.push(new QuoteInfo("If one oversteps the bounds of moderation, the greatest pleasures cease to please.", "Epictetus"));
@@ -186,7 +186,7 @@ quotes.push(new QuoteInfo("Nosce te ipsum", "Latin Proverb - Know Thyself"));
 quotes.push(new QuoteInfo("O man, whoever you are and wherever you come from, for I know you will come, I am Cyrus who won the Persians their empire. Do not therefore begrudge me this bit of earth that covers my bones.", "Cyrus the Great's Epitaph as noted by Plutarch"));
 quotes.push(new QuoteInfo("I lived believing that my failures would build character, and that they were trials that honed my skills. And in return, I would accomplish a deed so great that it would obliterate all of my failures and I'd die a worthy death. At least, that was how it was supposed to go, but in the end my life was a worthless story.", "Jiraiya"));
 quotes.push(new QuoteInfo("Naruto: Grrr! I can't take it anymore! What is the point of this boring training!\n\
-		Jiraiya: Idoit! There's boring training and there's exciting training! You stupid apprentice!", "Jiraiya teaching Naruto"));
+		Jiraiya: Idiot! There's boring training and there's exciting training! You stupid apprentice!", "Jiraiya teaching Naruto"));
 quotes.push(new QuoteInfo("I don't have to tell you things are bad. Everybody knows things are bad. It's a depression. Everybody's out of work or scared of losing their job. The dollar buys a nickel's worth. Banks are going bust. Shopkeepers keep a gun under the counter. Punks are running wild in the street and there's no one anywhere that seems to know what to do with us. Now into it. We know the air is unfit to breathe, our food is unfit to eat, and we sit watching our TVs while some local newscaster tells us that today we had 15 homicides and 63 violent crimes as if that's the way it's supposed to be. We know things are bad. Worse than bad. They're crazy. It's like everything everywhere is going crazy so we don't go out anymore. We sit in a house as slowly the world we're living in is getting smaller and all we say is, 'Please, at least leave us alone in our living rooms. Let me have my toaster, and TV, and my steel belted radials and I won't say anything.' Well I'm not going to leave you alone. I want you to get mad. I don't want you to protest. I don't want you to riot. I don't want you to write to your congressman because I wouldn't know what to tell you to write. I don't know what to do about the depression and the inflation and the Russians and the crying in the streets. All I know is first you've got to get mad. You've got to say, 'I'm a human being. God Dammit, my life has value.' So, I want you to get up now. I want all of you to get up out of your chairs. I want you to get up right now and go to the window, open it, and stick your head out, and yell, 'I'm as mad as hell, and I'm not going to take this anymore!' I want you to get up right now. Get up. Go to your windows, open your windows, and stick your head out, and yell, 'I'm as mad as hell and I'm not going to take this anymore!' Things have got to change my friends. You've got to get mad. You've got to say, 'I'm as mad as hell and I'm not going to take this anymore!' Then we'll figure out what to do about the depression and the inflation and the oil crisis. But first get up out of your chairs, open your window, stick your head out and yell, 'I'm as mad as hell and I'm not going to take this anymore!'", "Howard Beale (Network by Paddy Chayefsky)"));
 quotes.push(new QuoteInfo("Even monkeys fall from trees", "Japanese Proverb"));
 quotes.push(new QuoteInfo("We know that you are going \n\
@@ -242,7 +242,7 @@ quotes.push(new QuoteInfo("There's a grief that can't be spoken.\n\
 							\n\
 							The very words that they had sung  \n\
 							became their last communion \n\
-							On the lonly barricade \n\
+							On the lonely barricade \n\
 							at dawn \n\
 							\n\
 							Oh my friends, my friends forgive me. \n\
@@ -255,11 +255,11 @@ quotes.push(new QuoteInfo("There's a grief that can't be spoken.\n\
 							Empty chairs at empty tables. \n\
 							Now my friends will meet no more. \n\
 							\n\
-							Oh my frieds, my friends don't ask me, \n\
+							Oh my friends, my friends don't ask me, \n\
 							what your sacrifice was for. \n\
 							Empty chairs at empty tables. \n\
 							Now my friends will sing no more.", "Marius from Les Miserables"));
 quotes.push(new QuoteInfo("You see these hands they're bruised and brown, they're yours alone.  Hold on love, we're still going down. Hold on love, we're still fighting at home!", "Josh Groban"));
-quotes.push(new QuoteInfo("After a certian age, even men lose interest in who is stronger and weaker. It's inevitable while violence is a crime. However, there are those who cannot change that value system. They are the ones who cannot ignore their own weakness. For one it may come from a wish to become strong from their past as a weakling, for another it may be thier pride which will not forgive their own weekness. The value they place on strength put down deep roots into their being.  You may laugh it off as a simple complex, but to them it is a prayer to become stronger. That prayer sustains their uncanny daily study.", "Kouji Mori"));
+quotes.push(new QuoteInfo("After a certain age, even men lose interest in who is stronger and weaker. It's inevitable while violence is a crime. However, there are those who cannot change that value system. They are the ones who cannot ignore their own weakness. For one it may come from a wish to become strong from their past as a weakling, for another it may be their pride which will not forgive their own weakness. The value they place on strength put down deep roots into their being.  You may laugh it off as a simple complex, but to them it is a prayer to become stronger. That prayer sustains their uncanny daily study.", "Kouji Mori"));
 quotes.push(new QuoteInfo("Savor the fruit of life, my young friends. It has a sweet taste when it is fresh from the vine, but don't live too long. The taste turns bitter ... after a time.", "Kor, The Dahar Master"));
 
