@@ -1,13 +1,15 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title>403</title>
+<title>Page not found</title>
 
 <meta charset="UTF-8">
-<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 * {margin: 0; padding: 0;}
 body {background: black;}
-canvas {display: block;}
+canvas {display: block; width: 100vw; height: 100vh;}
 </style>
 
 <!-- adapted from here: http://thecodeplayer.com/experiment/matrix-rain-animation-html5-canvas-javascript -->
@@ -19,79 +21,98 @@ canvas {display: block;}
 
 
 <script>
-var c = document.getElementById("c");
-var ctx = c.getContext("2d");
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
 
-//making the canvas full screen
-c.height = window.innerHeight;
-c.width = window.innerWidth;
+// chinese characters - taken from the unicode charset
+const chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑ムタ二コク1234567890シモラキリエスハヌトユABCDEFabcdefghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ".split("");
 
-//chinese characters - taken from the unicode charset
-var chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑ムタ二コク1234567890シモラキリエスハヌトユABCDEFabcdefghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ";
-//converting the string into an array of single characters
-chinese = chinese.split("");
+const name = "DANIEL";
 
-var font_size = 14;
-var columns = c.width/font_size; //number of columns for the rain
-//an array of drops - one per column
-var drops = [];
-//x below is the x coordinate
-//1 = y co-ordinate of the drop(same for every drop initially)
-for(var x = 0; x < columns; x++)
-	drops[x] = 1; 
+// Character size in CSS pixels (fixed on all screen sizes)
+const CELL_SIZE = 12;
+let layoutWidth = 0;
+let layoutHeight = 0;
+let columns = 0;
+let drops = [];
+let foundName = false;
+let nameIdx = 0;
+let nameDrop = 0;
 
-foundName = false;
-nameIdx = 0;
-nameDrop = 0;
+function initDrops() {
+	drops = [];
+	const rows = Math.ceil(layoutHeight / CELL_SIZE) + 1;
+	for (let x = 0; x < columns; x++) {
+		drops[x] = Math.floor(Math.random() * rows);
+	}
+}
+
+function resizeCanvas() {
+	layoutWidth = document.documentElement.clientWidth;
+	layoutHeight = document.documentElement.clientHeight;
+
+	const dpr = window.devicePixelRatio || 1;
+	columns = Math.floor(layoutWidth / CELL_SIZE);
+
+	// Setting width/height resets the context (transform, font, etc.)
+	c.width = Math.floor(layoutWidth * dpr);
+	c.height = Math.floor(layoutHeight * dpr);
+	ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+	initDrops();
+	foundName = false;
+	nameIdx = 0;
+}
+
+function setDrawFont() {
+	// Must run after resize (canvas dimension reset clears font) and each frame is safest
+	ctx.font = "bold " + CELL_SIZE + "px monospace";
+	ctx.textBaseline = "top";
+}
+
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
 //drawing the characters
 function draw()
 {
-	//Black BG for the canvas
-	//translucent BG to show trail
+	setDrawFont();
+
+	// translucent BG to show trail (use layout size in CSS pixel space)
 	ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
-	ctx.fillRect(0, 0, c.width, c.height);
-	
-	ctx.fillStyle = "#4169e1"; //red text
-	ctx.font = font_size + "px arial";
-	//looping over drops
-    name = "DANIEL";
-	for(var i = 0; i < drops.length; i++)
+	ctx.fillRect(0, 0, layoutWidth, layoutHeight);
+
+	for (let i = 0; i < columns; i++)
 	{
-      	ctx.fillStyle = "#4169e1";
+		ctx.fillStyle = "#4169e1";
 
-		if (!foundName && Math.floor(Math.random() * 100) == 1){
-             foundName = true;
-             nameIdx = 0;
-             nameDrop = i;
-        } 
+		if (!foundName && Math.floor(Math.random() * 100) === 1) {
+			foundName = true;
+			nameIdx = 0;
+			nameDrop = i;
+		}
 
-		//a random chinese character to print
-		var text = chinese[Math.floor(Math.random()*chinese.length)];
-		
-		if ( foundName){
-    		   
-            if ( i == nameDrop ){
-            	if (nameIdx <= (name.length - 1)){ 
-		        	ctx.fillStyle = "#7798fc";
-		        	text = name[nameIdx];
-                	nameIdx++;
-  		    	} else {
-                	foundName = false;
-                	nameIdx = 0;
-        	    }
+		let text = chinese[Math.floor(Math.random() * chinese.length)];
+
+		if (foundName && i === nameDrop) {
+			if (nameIdx <= name.length - 1) {
+				ctx.fillStyle = "#7798fc";
+				text = name[nameIdx];
+				nameIdx++;
+			} else {
+				foundName = false;
+				nameIdx = 0;
 			}
-        }
+		}
 
-		//x = i*font_size, y = value of drops[i]*font_size
-		ctx.fillText(text, i*font_size, drops[i]*font_size);
+		const x = i * CELL_SIZE;
+		const y = drops[i] * CELL_SIZE;
+		ctx.fillText(text, x, y);
 
-		//sending the drop back to the top randomly after it has crossed the screen
-		//adding a randomness to the reset to make the drops scattered on the Y axis
-		if(drops[i]*font_size > c.height && Math.random() > 0.975)
+		if (y > layoutHeight && Math.random() > 0.975) {
 			drops[i] = 0;
-		
-		//incrementing Y coordinate
+		}
+
 		drops[i]++;
 	}
 }
