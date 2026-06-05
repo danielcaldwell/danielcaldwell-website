@@ -108,13 +108,11 @@
 
 			refreshTimeoutID = setTimeout(()=>{
 
-				newImage.src = randomArtwork.url;
-
 				newImage.onload = function(){
 					applyArtwork(randomArtwork);
 
 					container.classList.remove('hidden');
-					
+
 					startInterval();
 
 				}
@@ -124,6 +122,8 @@
 					container.classList.remove('hidden');
 					startInterval();
 				}
+
+				newImage.src = randomArtwork.url;
 
 			}, fadeDuration);
 
