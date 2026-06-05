@@ -11,7 +11,7 @@ class ImageInfo {
 	}
 }
 
-var images = new Array(24);
+var images = [];
 images[0]  = new ImageInfo( './images/Decent-into-Fillmore.jpg', 'Fillmore' );
 images[1]  = new ImageInfo( './images/Just-Outside-of-Palm-Spring.jpg', '111 highway' );
 images[2]  = new ImageInfo( './images/Mt.-Olympus-from-South.jpg', 'Mt. Olympus' );
