@@ -1,4 +1,4 @@
-// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
+// This code was created by me, Daniel Caldwell, and it is available to the public domain.
 function QuoteInfo(  quote, author ){
 	this.author = author;
 	this.quote = quote;
@@ -192,7 +192,7 @@ quotes.push(new QuoteInfo("Even monkeys fall from trees", "Japanese Proverb"));
 quotes.push(new QuoteInfo("We know that you are going \n\
 			we'll follow you someday \n\
 			but until that day comes \n\
-			we'll make use of you today.", "Daniel"));
+			we'll make use of you today.", "Dreams of Daniel"));
 quotes.push(new QuoteInfo("The resistance that you fight physically in the gym and the resistance that you fight in life can only build a strong character.", "Arnold Schwarzenegger"));
 quotes.push(new QuoteInfo("Will I lose my dignity? \n\
 						   Will someone care?  \n\
@@ -210,9 +210,9 @@ quotes.push(new QuoteInfo("And in despair I bowed my head, \n\
 							With peace on earth, goodwill to men, \n\
 							peace on earth, goodwill to men.", "Henry Wadsworth Longfellow"));
 quotes.push(new QuoteInfo("When the snow is lightly falling  \n\
-							And the night is  all around  \n\
+							And the night is all around  \n\
 							I feel your soul beside me.  \n\
-							And the world makes no sound. ", "Daniel"));
+							And the world makes no sound. ", "Dreams of Daniel"));
 quotes.push(new QuoteInfo("In the bleak midwinter,  \n\
 							frosty wind made moan \n\
 							Earth stood hard as iron \n\
@@ -224,38 +224,15 @@ quotes.push(new QuoteInfo("In the bleak midwinter,  \n\
 							long, long ago.", "Christina Rossetti"));
 quotes.push(new QuoteInfo("Beautiful chocolate cake, first serving is delicious; second one, not so much, then we feel disgust.", "Matthieu Ricard"));
 quotes.push(new QuoteInfo("There is enough for everyone's need, but not for everyone's greed", "Gandhi"));
-quotes.push(new QuoteInfo("God on high, hear my prayer...\n\
-							In my need, you have always been there.", "Jean Valjean from Les Miserables"));
 quotes.push(new QuoteInfo("There's a grief that can't be spoken.\n\
 							There's a pain goes on and on...\n\
-							Empty chairs at empty tables.\n\
-							\n\
-							Here they talked of revolution. \n\
-							Here it was they lit the flame. \n\
-							Here they sang about tomorrow \n\
-							and tomorrow never came. \n\
-							\n\
-							From the table in the corner \n\
-							they could see a world reborn \n\
-							And they rose with voices ringing \n\
-							and I can't hear them now. \n\
-							\n\
-							The very words that they had sung  \n\
-							became their last communion \n\
-							On the lonely barricade \n\
-							at dawn \n\
-							\n\
-							Oh my friends, my friends forgive me. \n\
+							Empty chairs at empty tables,\n\
+							Now my friends are dead and gone.", "Marius from Les Miserables"));
+quotes.push(new QuoteInfo("Oh my friends, my friends forgive me. \n\
 							That I live and you are gone. \n\
 							There's a grief that can't be spoken, \n\
-							There's a pain that goes on and on. \n\
-							\n\
-							Phantom faces at the window. \n\
-							Phantom shadows on the floor. \n\
-							Empty chairs at empty tables. \n\
-							Now my friends will meet no more. \n\
-							\n\
-							Oh my friends, my friends don't ask me, \n\
+							There's a pain that goes on and on.", "Marius from Les Miserables"));
+quotes.push(new QuoteInfo("Oh my friends, my friends don't ask me, \n\
 							what your sacrifice was for. \n\
 							Empty chairs at empty tables. \n\
 							Now my friends will sing no more.", "Marius from Les Miserables"));
