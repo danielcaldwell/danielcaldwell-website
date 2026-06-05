@@ -152,6 +152,10 @@ input:checked + .slider:before {
     padding: 2rem 2.5rem;
     background-color: var(--settings-bg);
     border: 2px solid var(--border-color);
+}
+
+#artwork-container .quote-display,
+#artwork-container .artwork-display {
     cursor: pointer;
 }
 
