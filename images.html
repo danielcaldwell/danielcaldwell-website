@@ -1,59 +1,51 @@
 <!DOCTYPE html>
-<HTML>
+<html lang="en">
 
-<HEAD>
-	<TITLE>Daniel Caldwell</TITLE>
-	<LINK href="site.css" rel="stylesheet" type="text/css">
-</HEAD>
+<head>
+	<title>Images — Daniel Caldwell</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="site.css" rel="stylesheet" type="text/css">
+</head>
 
-<BODY>
+<body>
+
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
 
 	<div class="container">
+		<nav class="breadcrumb"><a href="index.html">← Home</a></nav>
 
-				<script type="text/javascript" src="imagelist.js"></script>
-				<script language="Javascript">
+		<script type="text/javascript" src="imagelist.js"></script>
+		<script>
 
-					// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
+			// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
 
-					var i = 0;
+			for (var i = 0; i < images.length; i++) {
+				document.write("<div class='artwork-container'>");
+				document.write("<IMG SRC='" + images[i].url + "' class='artwork-display' alt='" + images[i].title + "' > ")
+				document.write("<div class='artwork-label'>");
+				document.write("<div class='artwork-title'>" + images[i].title + "</div>");
+				document.write("<div class='artwork-date'>" + images[i].date + "</div>");
+				document.write("<div class='artwork-author'>" + images[i].author + "</div>");
+				document.write("<div class='artwork-author-lifetime'>" + images[i].author_lifetime + "</div>");
+				document.write("<div class='artwork-medium'>" + images[i].medium + "</div>");
+				document.write("<div class='artwork-description'>" + images[i].description + "</div>");
+				document.write("</div>");
+				document.write("<div class='artwork-separator'></div>")
+				document.write("</div>");
+			}
 
-					for (i = 0; i < images.length; i++) {
-						document.write("<div class='artwork-container'>");
-						document.write("<IMG SRC='" + images[i].url + "' class='artwork-display' alt='" + images[i].title + "' > ")
-						document.write("<div class='artwork-label'>");
-						document.write("<div class='artwork-title'>" + images[i].title + "</div>");
-						document.write("<div class='artwork-date'>" + images[i].date + "</div>");
-						document.write("<div class='artwork-author'>" + images[i].author + "</div>");
-						document.write("<div class='artwork-author-lifetime'>" + images[i].author_lifetime+ "</div>");
-						document.write("<div class='artwork-medium'>" + images[i].medium + "</div>");
-						document.write("<div class='artwork-description'>" + images[i].description + "</div>");
-						document.write("</div>");
-						document.write("<div class='artwork-separator'></div>")
-						document.write("</div>");
-				
-					}
+		</script>
 
-
-								
-					document.addEventListener('DOMContentLoaded', () => {
-			
-						// Check for saved user preference
-						const savedTheme = localStorage.getItem('theme');
-						
-						// Set initial theme
-						if (savedTheme) {
-							document.documentElement.setAttribute('data-theme', savedTheme);
-						}
-
-					});
-					
-				</script>
-
-
-
-	
 	</div>
 
-</BODY>
+</body>
 
-</HTML>
+</html>
