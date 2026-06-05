@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<HTML lang="en">
+<html lang="en">
 
-<HEAD>
-	<TITLE>Daniel Caldwell's Website</TITLE>
+<head>
+	<title>Daniel Caldwell's Website</title>
 	
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,9 +22,9 @@
 		}
 	</script>
 
-</HEAD>
+</head>
 
-<BODY>
+<body>
 
 	<script type="text/javascript" src="imagelist.js"></script>
 	<script type="text/javascript" src="quotelist.js"></script>
@@ -54,19 +54,19 @@
 			</div>
 		</div>
 
-		<div id="artwork-container" class="artwork-container">
-			<img alt="Museum Artifact" id="artwork" class="artwork-display">
+		<div id="artwork-container" class="artwork-container hidden">
+			<img alt="" id="artwork" class="artwork-display">
 			<div id="quote-display" class="quote-display">
 				<div id="quote-text" class="quote-text"></div>
 				<div id="quote-attribution" class="quote-attribution"></div>
 			</div>
 			<div class="artwork-label">
-				<div id="artwork-title" class="artwork-title">Bryce Canyon</div>
-				<div id="artwork-date" class="artwork-date">2007</div>
-				<div id="artwork-author" class="artwork-author">Daniel Caldwell</div>
-				<div id="artwork-author-lifetime" class="artwork-author-lifetime">American (19??-????)</div>
-				<div id="artwork-medium" class="artwork-medium">Stitched Panoramic Photo on Digital Screen</div>
-				<div id="artwork-description" class="artwork-description">A panoramic view of Bryce Canyon from Sunrise Point.</div>
+				<div id="artwork-title" class="artwork-title"></div>
+				<div id="artwork-date" class="artwork-date"></div>
+				<div id="artwork-author" class="artwork-author"></div>
+				<div id="artwork-author-lifetime" class="artwork-author-lifetime"></div>
+				<div id="artwork-medium" class="artwork-medium"></div>
+				<div id="artwork-description" class="artwork-description"></div>
 			</div>
 		</div>
 
@@ -94,7 +94,9 @@
 		}
 
 		function applyArtwork(artwork) {
-			document.getElementById('artwork-container').classList.remove('showing-quote');
+			const container = document.getElementById('artwork-container');
+			container.classList.remove('showing-quote');
+			container.classList.remove('hidden');
 			document.getElementById('artwork').src = artwork.url;
 			document.getElementById('artwork').alt = artwork.title;
 			document.getElementById('artwork-title').innerText = artwork.title;
@@ -106,7 +108,9 @@
 		}
 
 		function applyQuote(quote) {
-			document.getElementById('artwork-container').classList.add('showing-quote');
+			const container = document.getElementById('artwork-container');
+			container.classList.add('showing-quote');
+			container.classList.remove('hidden');
 			let quoteText = '”' + quote.quote + '”';
 			let author = quote.author;
 			const dashIdx = author.indexOf(' - ');
@@ -214,17 +218,9 @@
 				}
 			});
 						
-			// Check for saved user preference
+			// Sync toggle state with the theme already applied in <head>
 			const savedTheme = localStorage.getItem('theme');
-			
-			// Set initial theme
-			if (savedTheme) {
-				document.documentElement.setAttribute('data-theme', savedTheme);
-				darkModeToggle.checked = savedTheme === 'dark';
-			} else {
-				document.documentElement.setAttribute('data-theme', prefersDarkMode ? 'dark' : 'light');
-				darkModeToggle.checked = prefersDarkMode;
-			}
+			darkModeToggle.checked = savedTheme ? savedTheme === 'dark' : prefersDarkMode;
 			// Handle dark mode toggle
 			darkModeToggle.addEventListener('change', () => {
 				const newTheme = darkModeToggle.checked ? 'dark' : 'light';
@@ -243,6 +239,6 @@
 		}); 
 	</script>
 
-</BODY>
+</body>
 
-</HTML>
+</html>
