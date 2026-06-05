@@ -65,6 +65,7 @@
 		var currentdate = 0;
 		var core = 0;
 		var intervalID = 0;
+		var refreshTimeoutID = 0;
 
 		function ranImage() {
 
@@ -95,17 +96,20 @@
 			if (intervalID){ 
 				clearInterval(intervalID);
 			}
+			if (refreshTimeoutID) {
+				clearTimeout(refreshTimeoutID);
+			}
 			const container = document.getElementById('artwork-container');
 
     		const fadeDuration = 1000; // must match .artwork-container transition duration in site.css
 
 			container.classList.add('hidden');
 
-			randomArtwork = ranImage();
+			const randomArtwork = ranImage();
 
 			const newImage = new Image();
 
-			setTimeout(()=>{
+			refreshTimeoutID = setTimeout(()=>{
 
 				newImage.src = randomArtwork.url;
 
@@ -116,6 +120,12 @@
 					
 					startInterval();
 
+				}
+
+				newImage.onerror = function(){
+					// If the image fails, don't leave the container hidden.
+					container.classList.remove('hidden');
+					startInterval();
 				}
 
 			}, fadeDuration);
