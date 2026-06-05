@@ -135,6 +135,34 @@ input:checked + .slider:before {
 }
 
 
+#artwork-container:not(.showing-quote) .quote-display { display: none; }
+#artwork-container.showing-quote .artwork-display,
+#artwork-container.showing-quote .artwork-label { display: none; }
+
+.quote-display {
+    max-width: 600px;
+    margin: auto;
+    text-align: center;
+    padding: 2rem 2.5rem;
+    background-color: var(--settings-bg);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+}
+
+.quote-text {
+    font-size: 1.4rem;
+    font-style: italic;
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+    color: var(--text-color);
+}
+
+.quote-attribution {
+    font-size: 1rem;
+    font-style: normal;
+    color: var(--text-color);
+}
+
 .artwork-container {
     width: 100%;
     text-align: center;

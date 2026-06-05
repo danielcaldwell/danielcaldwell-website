@@ -41,6 +41,10 @@
 
 		<div id="artwork-container" class="artwork-container">
 			<img alt="Museum Artifact" id="artwork" class="artwork-display">
+			<div id="quote-display" class="quote-display">
+				<div id="quote-text" class="quote-text"></div>
+				<div id="quote-attribution" class="quote-attribution"></div>
+			</div>
 			<div class="artwork-label">
 				<div id="artwork-title" class="artwork-title">Bryce Canyon</div>
 				<div id="artwork-date" class="artwork-date">2007</div>
@@ -77,6 +81,7 @@
 		}
 
 		function applyArtwork(artwork) {
+			document.getElementById('artwork-container').classList.remove('showing-quote');
 			document.getElementById('artwork').src = artwork.url;
 			document.getElementById('artwork').alt = artwork.title;
 			document.getElementById('artwork-title').innerText = artwork.title;
@@ -85,6 +90,12 @@
 			document.getElementById('artwork-author-lifetime').innerText = artwork.author_lifetime;
 			document.getElementById('artwork-medium').innerText = artwork.medium;
 			document.getElementById('artwork-description').innerText = artwork.description;
+		}
+
+		function applyQuote(quote) {
+			document.getElementById('artwork-container').classList.add('showing-quote');
+			document.getElementById('quote-text').innerText = '“' + quote.quote + '”';
+			document.getElementById('quote-attribution').innerText = '— ' + quote.author;
 		}
 
 		function refreshContent() {
@@ -101,30 +112,32 @@
 
 			container.classList.add('hidden');
 
-			const randomArtwork = ranImage();
+			const showQuote = Math.random() < 0.5;
 
-			const newImage = new Image();
-
-			refreshTimeoutID = setTimeout(()=>{
-
-				newImage.onload = function(){
-					applyArtwork(randomArtwork);
-
-					container.classList.remove('hidden');
-
-					startInterval();
-
-				}
-
-				newImage.onerror = function(){
-					// If the image fails, don't leave the container hidden.
+			if (showQuote) {
+				const randomQuote = ranQuote();
+				refreshTimeoutID = setTimeout(() => {
+					applyQuote(randomQuote);
 					container.classList.remove('hidden');
 					startInterval();
-				}
-
-				newImage.src = randomArtwork.url;
-
-			}, fadeDuration);
+				}, fadeDuration);
+			} else {
+				const randomArtwork = ranImage();
+				const newImage = new Image();
+				refreshTimeoutID = setTimeout(() => {
+					newImage.onload = function() {
+						applyArtwork(randomArtwork);
+						container.classList.remove('hidden');
+						startInterval();
+					};
+					newImage.onerror = function() {
+						// If the image fails, don't leave the container hidden.
+						container.classList.remove('hidden');
+						startInterval();
+					};
+					newImage.src = randomArtwork.url;
+				}, fadeDuration);
+			}
 
 			
 			// TODO: To be decided if it should be removed or if quotes should intersperse the images
@@ -157,19 +170,21 @@
 				clearInterval(intervalID);
 			}
 			startInterval();
-			
-			applyArtwork(ranImage());
+
+			if (Math.random() < 0.5) {
+				applyQuote(ranQuote());
+			} else {
+				applyArtwork(ranImage());
+			}
 
 
-			// when the panoramic is clicked, switch images with the previously loaded hidden one. 
-			document.getElementById('artwork').addEventListener('click', function (event) {
-
+			// when the artwork or quote is clicked, cycle to the next one
+			function onContentClick(event) {
 				event.preventDefault();
 				refreshContent();
-
-				// set the page to refresh every 15 seconds...
-
-			});
+			}
+			document.getElementById('artwork').addEventListener('click', onContentClick);
+			document.getElementById('quote-display').addEventListener('click', onContentClick);
 
 
 			// TODO: To be decided if it should be removed or if quotes should intersperse the images
