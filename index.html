@@ -99,8 +99,15 @@
 
 		function applyQuote(quote) {
 			document.getElementById('artwork-container').classList.add('showing-quote');
-			document.getElementById('quote-text').innerText = '“' + quote.quote + '”';
-			document.getElementById('quote-attribution').innerText = '— ' + quote.author;
+			let quoteText = '”' + quote.quote + '”';
+			let author = quote.author;
+			const dashIdx = author.indexOf(' - ');
+			if (dashIdx !== -1) {
+				quoteText += ' (' + author.slice(dashIdx + 3) + ')';
+				author = author.slice(0, dashIdx);
+			}
+			document.getElementById('quote-text').innerText = quoteText;
+			document.getElementById('quote-attribution').innerText = '— ' + author;
 		}
 
 		function refreshContent() {

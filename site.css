@@ -159,6 +159,19 @@ input:checked + .slider:before {
     cursor: pointer;
 }
 
+#artwork-container .quote-display {
+    max-height: calc(100vh - 8rem);
+    overflow: hidden;
+}
+
+#artwork-container .quote-text {
+    font-size: clamp(0.65rem, 2.5vh, 1.4rem);
+}
+
+#artwork-container .quote-attribution {
+    font-size: clamp(0.6rem, 2.5vh, 1rem);
+}
+
 .quote-text {
     font-size: 1.4rem;
     font-style: italic;

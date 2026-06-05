@@ -26,13 +26,21 @@
             const card = document.createElement('div');
             card.className = 'quote-display';
 
+            let quoteText = '”' + q.quote + '”';
+            let author = q.author;
+            const dashIdx = author.indexOf(' - ');
+            if (dashIdx !== -1) {
+                quoteText += ' (' + author.slice(dashIdx + 3) + ')';
+                author = author.slice(0, dashIdx);
+            }
+
             const text = document.createElement('div');
             text.className = 'quote-text';
-            text.innerText = '“' + q.quote + '”';
+            text.innerText = quoteText;
 
             const attr = document.createElement('div');
             attr.className = 'quote-attribution';
-            attr.innerText = '— ' + q.author;
+            attr.innerText = '— ' + author;
 
             card.appendChild(text);
             card.appendChild(attr);
