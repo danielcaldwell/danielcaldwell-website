@@ -13,6 +13,14 @@
 	<!-- styles -->
 	<link href="site.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
 
 </HEAD>
 
@@ -66,7 +74,7 @@
 	</div>
 
 
-	<script language="Javascript">
+	<script>
 
 		// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
 
@@ -152,15 +160,6 @@
 			}
 
 			
-			// TODO: To be decided if it should be removed or if quotes should intersperse the images
-			// $('table[id="pageContent"]').fadeOut("slow", function () {
-			// 	var randomQuote = ranQuote();
-			// 	$('span[id="quote"]').html(randomQuote.quote.replace(new RegExp("\n", "g"), "<BR>"));
-			// 	$('span[id="author"]').html("-" + randomQuote.author);
-			// 	$('table[id="pageContent"]').fadeIn("slow");
-			// });
-
-
 		}
 
 		function startInterval(){
@@ -177,10 +176,6 @@
 
 		document.addEventListener('DOMContentLoaded', () => {
 
-			// get the initial images, visible, and hidden
-			if (intervalID){ 
-				clearInterval(intervalID);
-			}
 			startInterval();
 
 			if (Math.random() < 0.5) {
@@ -197,12 +192,6 @@
 			}
 			document.getElementById('artwork').addEventListener('click', onContentClick);
 			document.getElementById('quote-display').addEventListener('click', onContentClick);
-
-
-			// TODO: To be decided if it should be removed or if quotes should intersperse the images
-			// var randomQuote = ranQuote();
-			// $('span[id="quote"]').html(randomQuote.quote.replace(new RegExp("\n", "g"), "<BR>"));
-			// $('span[id="author"]').html("-" + randomQuote.author);
 
 
 			const settingsButton = document.getElementById('settingsButton');
