@@ -8,7 +8,7 @@ function QuoteInfo(  quote, author ){
 var quotes = new Array();
 quotes.push(new QuoteInfo( 'Stuffy people who insist on putting bureaucracy into everything really miss the point.', 'Richard Stallman'));
 quotes.push(new QuoteInfo( 'Methodologies encourage rock stars to become compliance monkeys', 'Joel Splosky'));
-quotes.push(new QuoteInfo( 'all is vanity', 'Ecclesiastes'));
+quotes.push(new QuoteInfo( 'all is vanity and vexation of spirit', 'Ecclesiastes'));
 quotes.push(new QuoteInfo( "Don't dream too far. Don't lose sight of who you are. Don't remember that rush of joy. ... Don't wish, don't start. Wishing only wounds the heart.", "Elphaba"));
 quotes.push(new QuoteInfo( "That impossible anger strangling the grief until the memory of your loved ones is just posioning your veins. One day you catch yourself wishing the person you loved never existed; so you'd be spared your pain.", "Henry Ducart"));
 quotes.push(new QuoteInfo( "... What you've worked and waited for, you can have all you've ever wanted. ... \n\
@@ -108,7 +108,7 @@ quotes.push(new QuoteInfo( "Watch and pray, that ye enter not into temptation: t
 quotes.push(new QuoteInfo( "The spirit is willing, but the flesh is weak", "Paraphrased from Matthew"));
 quotes.push(new QuoteInfo( "The cheese is old and moldy. Where is the bathroom?", "Encino Man"));
 quotes.push(new QuoteInfo( "The explanation is quite ingenious, as all freudian explanations are.", "Vilayanur Ramachandran"));
-quotes.push(new QuoteInfo( "Honor is.. what no man can give ye, and no one can take away. Honor is a man�s gift to himself.", "Rob Roy"));
+quotes.push(new QuoteInfo( "Honor is.. what no man can give ye, and no one can take away. Honor is a man's gift to himself.", "Rob Roy"));
 quotes.push(new QuoteInfo( "Women are the heart of honor - and we cherish and protect it in them. You must never mistreat a woman, or malign a man. Or stand by and see another do so.", "Rob Roy"));
 quotes.push(new QuoteInfo( "Never worry in the getting of it. It grows in ye and speaks to ye. All you need to do is listen.", "Rob Roy regarding honor"));
 quotes.push(new QuoteInfo( "No other success can compensate for failure in the home.", "David O. McKay"));
