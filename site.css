@@ -165,12 +165,19 @@ input:checked + .slider:before {
 #artwork-container.showing-quote .artwork-image-group { display: none; }
 
 .quote-display {
+    position: relative;
     max-width: 600px;
     margin: auto;
     text-align: center;
     padding: 2rem 2.5rem;
     background-color: var(--settings-bg);
     border: 2px solid var(--border-color);
+}
+
+#quote-share-btn {
+    position: absolute;
+    bottom: 0.4rem;
+    right: 0.4rem;
 }
 
 #artwork-container .quote-display,
@@ -248,6 +255,7 @@ input:checked + .slider:before {
 }
 
 .artwork-label {
+    position: relative;
     margin-top: 0.8rem;
     padding: 0.75rem;
     background-color: var(--settings-bg);
@@ -258,6 +266,12 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+}
+
+#artwork-share-btn {
+    position: absolute;
+    bottom: 0.4rem;
+    right: 0.4rem;
 }
 
 .share-btn {
@@ -276,15 +290,6 @@ input:checked + .slider:before {
     opacity: 1;
 }
 
-.artwork-label .share-btn {
-    align-self: flex-end;
-    margin-top: 0.1rem;
-}
-
-.share-row {
-    text-align: right;
-    margin-top: 0.25rem;
-}
 
 .copy-notification {
     position: fixed;
@@ -323,13 +328,14 @@ input:checked + .slider:before {
     font-size: 1rem;
 }
 
-.artwork-medium{
+.artwork-medium {
     font-size: 0.7rem;
 }
 
 .artwork-description{
     font-size: 0.7rem;
     margin-top: 0.25rem;
+    padding-right: 2rem;
 }
 
 .artwork-separator{
