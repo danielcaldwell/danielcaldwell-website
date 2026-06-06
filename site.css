@@ -142,8 +142,7 @@ input:checked + .slider:before {
 
 
 #artwork-container:not(.showing-quote) .quote-display { display: none; }
-#artwork-container.showing-quote .artwork-display,
-#artwork-container.showing-quote .artwork-label { display: none; }
+#artwork-container.showing-quote .artwork-image-group { display: none; }
 
 .quote-display {
     max-width: 600px;
@@ -217,8 +216,9 @@ input:checked + .slider:before {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-#artwork-container {
-    width: fit-content;
+.artwork-image-group {
+    display: inline-block;
+    max-width: 100%;
 }
 
 #artwork-container .artwork-display {
