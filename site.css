@@ -217,6 +217,14 @@ input:checked + .slider:before {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+#artwork-container {
+    width: fit-content;
+}
+
+#artwork-container .artwork-display {
+    max-height: calc(100vh - 14rem);
+}
+
 .artwork-label {
     margin-top: 0.8rem;
     padding: 0.75rem;
