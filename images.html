@@ -32,11 +32,10 @@
 				document.write("<IMG SRC='" + images[i].url + "' class='artwork-display' alt='" + images[i].title + "' > ")
 				document.write("<div class='artwork-label'>");
 				document.write("<div class='artwork-title'>" + images[i].title + "</div>");
-				document.write("<div class='artwork-date'>" + images[i].date + "</div>");
+				if (images[i].date) document.write("<div class='artwork-date'>" + images[i].date + "</div>");
 				document.write("<div class='artwork-author'>" + images[i].author + "</div>");
-				document.write("<div class='artwork-author-lifetime'>" + images[i].author_lifetime + "</div>");
 				document.write("<div class='artwork-medium'>" + images[i].medium + "</div>");
-				document.write("<div class='artwork-description'>" + images[i].description + "</div>");
+				if (images[i].description) document.write("<div class='artwork-description'>" + images[i].description + "</div>");
 				document.write("</div>");
 				document.write("<div class='artwork-separator'></div>")
 				document.write("</div>");

@@ -1,11 +1,10 @@
 // This code was created by me, Daniel Caldwell, and it is available to the public domain.
 class ImageInfo {
-	constructor(url, title, date = "Unknown Date", author = "Daniel Caldwell", author_lifetime = "19??-????", medium = "Digital Image on Digital Screen", description = "Undescribed artwork") {
+	constructor(url, title, date, author = "Daniel Caldwell", medium = "Digital Image on Digital Screen", description) {
 		this.url = url;
 		this.title = title;
 		this.date = date;
 		this.author = author;
-		this.author_lifetime = author_lifetime;
 		this.medium = medium;
 		this.description = description;
 	}
@@ -30,7 +29,7 @@ images[14] = new ImageInfo( './images/Rim-of-the-World-Sunset.jpg', 'The Rim of 
 images[15] = new ImageInfo( './images/The-Rim-Toward-Palm-Springs.jpg', 'The Rim toward Palm Springs' );
 images[16] = new ImageInfo( './images/Upland-Sunset.jpg', 'Sunset in Upland' );
 images[17] = new ImageInfo( './images/Devore-Sunset.jpg', 'Sunset in Devore' );
-images[18] = new ImageInfo( './images/Mountain-in-the-Clouds.jpg', 'Mountain in the Cloud', undefined, undefined, undefined, undefined, "A photo of Harrison Mountain taken from highway 330 on an overcast day when the valley is filled with fog." );
+images[18] = new ImageInfo( './images/Mountain-in-the-Clouds.jpg', 'Mountain in the Cloud', undefined, undefined, undefined, "A photo of Harrison Mountain taken from highway 330 on an overcast day when the valley is filled with fog." );
 images[19] = new ImageInfo( './images/Anaheim-Sunset.jpg', 'Sunset near Anaheim' );
 images[20] = new ImageInfo( './images/Alta-Loma-Mountains-in-the-.jpg', 'Mountains near Alta Loma' );
 images[21] = new ImageInfo( './images/Snow-In-Idaho.jpg', 'Snow in Idaho' );

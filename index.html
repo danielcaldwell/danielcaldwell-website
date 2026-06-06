@@ -64,7 +64,6 @@
 				<div id="artwork-title" class="artwork-title"></div>
 				<div id="artwork-date" class="artwork-date"></div>
 				<div id="artwork-author" class="artwork-author"></div>
-				<div id="artwork-author-lifetime" class="artwork-author-lifetime"></div>
 				<div id="artwork-medium" class="artwork-medium"></div>
 				<div id="artwork-description" class="artwork-description"></div>
 			</div>
@@ -100,11 +99,16 @@
 			document.getElementById('artwork').src = artwork.url;
 			document.getElementById('artwork').alt = artwork.title;
 			document.getElementById('artwork-title').innerText = artwork.title;
-			document.getElementById('artwork-date').innerText = artwork.date;
 			document.getElementById('artwork-author').innerText = artwork.author;
-			document.getElementById('artwork-author-lifetime').innerText = artwork.author_lifetime;
 			document.getElementById('artwork-medium').innerText = artwork.medium;
-			document.getElementById('artwork-description').innerText = artwork.description;
+
+			const dateElement = document.getElementById('artwork-date');
+			dateElement.innerText = artwork.date || '';
+			dateElement.style.display = artwork.date ? '' : 'none';
+
+			const descElement = document.getElementById('artwork-description');
+			descElement.innerText = artwork.description || '';
+			descElement.style.display = artwork.description ? '' : 'none';
 		}
 
 		function applyQuote(quote) {

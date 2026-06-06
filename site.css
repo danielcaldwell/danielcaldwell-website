@@ -243,12 +243,6 @@ input:checked + .slider:before {
     font-size: 1rem;
 }
 
-.artwork-author-lifetime{
-    font-size: 0.7rem;
-    margin-bottom: 0.5rem;
-    font-style: italic;
-}
-
 .artwork-medium{
     font-size: 0.7rem;
     margin-bottom: 0.5rem;
