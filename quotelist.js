@@ -1,12 +1,13 @@
 // This code was created by me, Daniel Caldwell, and it is available to the public domain.
-function QuoteInfo( id, quote, author ){
-	this.id = id;
-	this.author = author;
-	this.quote = quote;
+class QuoteInfo {
+	constructor(id, quote, author) {
+		this.id = id;
+		this.author = author;
+		this.quote = quote;
+	}
 }
 
-
-var quotes = new Array();
+const quotes = [];
 quotes.push(new QuoteInfo( 'PiLWGsVdeI', 'Stuffy people who insist on putting bureaucracy into everything really miss the point.', 'Richard Stallman'));
 quotes.push(new QuoteInfo( 'Qb-9r7CYzE', 'Methodologies encourage rock stars to become compliance monkeys', 'Joel Splosky'));
 quotes.push(new QuoteInfo( 'RfTNJq5Q6X', 'all is vanity and vexation of spirit', 'Ecclesiastes'));

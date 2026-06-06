@@ -1,5 +1,9 @@
 # danielcaldwell-website
 
+## JavaScript
+
+Use ES6+ syntax throughout: `class`, `const`/`let`, arrow functions, template literals. Avoid `var`, ES5 function constructors, and `new Array()`.
+
 ## Images
 
 All images are stored in `./images/`. Do not use subdirectories.
