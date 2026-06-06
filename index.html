@@ -81,6 +81,7 @@
 
 		var intervalID = 0;
 		var refreshTimeoutID = 0;
+		let currentQuote = null;
 
 		function ranImage() {
 
@@ -95,6 +96,7 @@
 		}
 
 		function applyArtwork(artwork) {
+			currentQuote = null;
 			const container = document.getElementById('artwork-container');
 			container.classList.remove('showing-quote');
 			container.classList.remove('hidden');
@@ -115,6 +117,7 @@
 		}
 
 		function applyQuote(quote) {
+			currentQuote = quote;
 			const container = document.getElementById('artwork-container');
 			container.classList.add('showing-quote');
 			container.classList.remove('hidden');
@@ -180,8 +183,7 @@
 						startInterval();
 					};
 					newImage.onerror = function() {
-						// If the image fails, don't leave the container hidden.
-						container.classList.remove('hidden');
+						applyQuote(ranQuote());
 						startInterval();
 					};
 					newImage.src = randomArtwork.url;
@@ -230,6 +232,13 @@
 			document.getElementById('artwork').addEventListener('click', onContentClick);
 			document.getElementById('quote-display').addEventListener('click', onContentClick);
 
+			let resizeDebounceID = 0;
+			window.addEventListener('resize', () => {
+				clearTimeout(resizeDebounceID);
+				resizeDebounceID = setTimeout(() => {
+					if (currentQuote) applyQuote(currentQuote);
+				}, 150);
+			});
 
 			const settingsButton = document.getElementById('settingsButton');
 			const settingsMenu = document.getElementById('settingsMenu');
