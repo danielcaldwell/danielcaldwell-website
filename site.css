@@ -82,6 +82,25 @@ a {
     display: none;
 }
 
+.progress-bar-track {
+    margin-top: 0.4rem;
+    height: 5px;
+    background-color: rgba(33, 150, 243, 0.25);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: #2196F3;
+    transform-origin: left;
+}
+
+@keyframes progress-drain {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
 .settings-option {
     display: flex;
     justify-content: space-between;
@@ -239,6 +258,54 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+}
+
+.share-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 0.85rem;
+    opacity: 0.4;
+    padding: 0.2rem;
+    line-height: 1;
+    transition: opacity 0.2s;
+}
+
+.share-btn:hover {
+    opacity: 1;
+}
+
+.artwork-label .share-btn {
+    align-self: flex-end;
+    margin-top: 0.1rem;
+}
+
+.share-row {
+    text-align: right;
+    margin-top: 0.25rem;
+}
+
+.copy-notification {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--settings-bg);
+    color: var(--text-color);
+    border: 1px solid var(--settings-border);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+}
+
+.copy-notification.visible {
+    opacity: 1;
 }
 
 .artwork-title{

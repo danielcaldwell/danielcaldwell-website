@@ -51,6 +51,17 @@
 				<div class="settings-option">
 					<a href="quotes.html">All Quotes</a>
 				</div>
+				<hr class="settings-divider">
+				<div class="settings-option">
+					<label for="slideshowToggle">Slideshow</label>
+					<label class="switch">
+						<input type="checkbox" id="slideshowToggle" checked>
+						<span class="slider round"></span>
+					</label>
+				</div>
+				<div class="progress-bar-track">
+					<div id="progress-bar-fill" class="progress-bar-fill"></div>
+				</div>
 			</div>
 		</div>
 
@@ -63,17 +74,22 @@
 					<div id="artwork-author" class="artwork-author"></div>
 					<div id="artwork-medium" class="artwork-medium"></div>
 					<div id="artwork-description" class="artwork-description"></div>
+					<button class="share-btn" id="artwork-share-btn" title="Copy link" aria-label="Copy link"><i class="fas fa-link"></i></button>
 				</div>
 			</div>
 			<div id="quote-display" class="quote-display">
 				<div id="quote-text" class="quote-text"></div>
 				<div id="quote-attribution" class="quote-attribution"></div>
+				<div class="share-row">
+					<button class="share-btn" id="quote-share-btn" title="Copy link" aria-label="Copy link"><i class="fas fa-link"></i></button>
+				</div>
 			</div>
 		</div>
 
 
 	</div>
 
+	<div id="copy-notification" class="copy-notification" aria-live="polite">Link copied!</div>
 
 	<script>
 
@@ -194,20 +210,23 @@
 		}
 
 		function startInterval(){
-			// reset interval
-			if (intervalID){ 
+			if (intervalID){
 				clearInterval(intervalID);
 			}
 			intervalID = setInterval(() => {
 				refreshContent();
 			}, 20000);
 
+			const fill = document.getElementById('progress-bar-fill');
+			if (fill) {
+				fill.style.animation = 'none';
+				fill.offsetHeight; // trigger reflow to restart animation
+				fill.style.animation = 'progress-drain 20s linear forwards';
+			}
 		}
 
 
 		document.addEventListener('DOMContentLoaded', () => {
-
-			startInterval();
 
 			const hashId = window.location.hash.slice(1);
 			const hashImage = hashId && images.find(img => img.id === hashId);
@@ -223,6 +242,8 @@
 				applyArtwork(ranImage());
 			}
 
+			startInterval();
+
 
 			// when the artwork or quote is clicked, cycle to the next one
 			function onContentClick(event) {
@@ -231,6 +252,39 @@
 			}
 			document.getElementById('artwork').addEventListener('click', onContentClick);
 			document.getElementById('quote-display').addEventListener('click', onContentClick);
+
+			// share: copy current URL to clipboard and show notification
+			let copyNotifTimeoutID = 0;
+			function showCopyNotification() {
+				const notif = document.getElementById('copy-notification');
+				notif.classList.add('visible');
+				clearTimeout(copyNotifTimeoutID);
+				copyNotifTimeoutID = setTimeout(() => notif.classList.remove('visible'), 2000);
+			}
+			function copyCurrentLink(event) {
+				event.stopPropagation();
+				navigator.clipboard.writeText(window.location.href).then(showCopyNotification);
+			}
+			document.getElementById('artwork-share-btn').addEventListener('click', copyCurrentLink);
+			document.getElementById('quote-share-btn').addEventListener('click', copyCurrentLink);
+
+			// slideshow toggle
+			const slideshowToggle = document.getElementById('slideshowToggle');
+			slideshowToggle.addEventListener('change', () => {
+				if (slideshowToggle.checked) {
+					startInterval();
+				} else {
+					clearInterval(intervalID);
+					intervalID = 0;
+					clearTimeout(refreshTimeoutID);
+					refreshTimeoutID = 0;
+					const fill = document.getElementById('progress-bar-fill');
+					if (fill) {
+						fill.style.animation = 'none';
+						fill.style.transform = 'scaleX(0)';
+					}
+				}
+			});
 
 			let resizeDebounceID = 0;
 			window.addEventListener('resize', () => {
