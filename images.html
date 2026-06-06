@@ -27,46 +27,44 @@
 
 			// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
 
-			var container = document.querySelector('.container');
-			for (var i = 0; i < images.length; i++) {
-				var img = images[i];
-
-				var wrapper = document.createElement('div');
+			const container = document.querySelector('.container');
+			for (const img of images) {
+				const wrapper = document.createElement('div');
 				wrapper.className = 'artwork-container';
 
-				var imgEl = document.createElement('img');
+				const imgEl = document.createElement('img');
 				imgEl.src = img.url;
 				imgEl.alt = img.title;
 				imgEl.className = 'artwork-display';
 				wrapper.appendChild(imgEl);
 
-				var label = document.createElement('div');
+				const label = document.createElement('div');
 				label.className = 'artwork-label';
 
-				var title = document.createElement('div');
+				const title = document.createElement('div');
 				title.className = 'artwork-title';
 				title.textContent = img.title;
 				label.appendChild(title);
 
 				if (img.date) {
-					var date = document.createElement('div');
+					const date = document.createElement('div');
 					date.className = 'artwork-date';
 					date.textContent = img.date;
 					label.appendChild(date);
 				}
 
-				var author = document.createElement('div');
+				const author = document.createElement('div');
 				author.className = 'artwork-author';
 				author.textContent = img.author;
 				label.appendChild(author);
 
-				var medium = document.createElement('div');
+				const medium = document.createElement('div');
 				medium.className = 'artwork-medium';
 				medium.textContent = img.medium;
 				label.appendChild(medium);
 
 				if (img.description) {
-					var desc = document.createElement('div');
+					const desc = document.createElement('div');
 					desc.className = 'artwork-description';
 					desc.textContent = img.description;
 					label.appendChild(desc);
@@ -74,7 +72,7 @@
 
 				wrapper.appendChild(label);
 
-				var separator = document.createElement('div');
+				const separator = document.createElement('div');
 				separator.className = 'artwork-separator';
 				wrapper.appendChild(separator);
 
