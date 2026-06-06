@@ -33,6 +33,7 @@ a {
 
 .container {
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -160,6 +161,7 @@ input:checked + .slider:before {
 
 #artwork-container .quote-display {
     max-height: calc(100vh - 8rem);
+    max-height: calc(100dvh - 8rem);
     overflow: hidden;
 }
 
@@ -223,6 +225,7 @@ input:checked + .slider:before {
 
 #artwork-container .artwork-display {
     max-height: calc(100vh - 14rem);
+    max-height: calc(100dvh - 14rem);
 }
 
 .artwork-label {
