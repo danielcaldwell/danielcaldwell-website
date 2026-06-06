@@ -131,3 +131,4 @@ images[115] = new ImageInfo( 'gHMo5YfNnj', './images/2011-05-13_Calico-Camping-7
 images[116] = new ImageInfo( 'QXYr1-SRpj', './images/2011-05-13_Calico-Camping-8.jpg', 'Calico Camping 8', '2011-05-13');
 images[117] = new ImageInfo( 'GJGAa9L59J', './images/2011-05-13_Calico-Camping-9.jpg', 'Calico Camping 9', '2011-05-13');
 images[118] = new ImageInfo( 'ruPw2FLQ08', './images/2011-05-13_Calico-Camping.jpg', 'Calico Camping', '2011-05-13');
+images[119] = new ImageInfo( 'kN3xQpWm7R', './images/San-Diego-Temple.jpg', 'San Diego Temple', '2011-09-18');
