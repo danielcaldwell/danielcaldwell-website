@@ -93,20 +93,18 @@
 
 		// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
 
-		var intervalID = 0;
-		var refreshTimeoutID = 0;
+		let intervalID = 0;
+		let refreshTimeoutID = 0;
 		let currentQuote = null;
 
 		function ranImage() {
-
-			var ranNum = Math.floor(Math.random() * images.length);
-			return (images[ranNum]);
+			const ranNum = Math.floor(Math.random() * images.length);
+			return images[ranNum];
 		}
 
-
 		function ranQuote() {
-			var ranNum = Math.floor(Math.random() * quotes.length);
-			return (quotes[ranNum]);
+			const ranNum = Math.floor(Math.random() * quotes.length);
+			return quotes[ranNum];
 		}
 
 		function applyArtwork(artwork) {
