@@ -118,8 +118,25 @@
 				quoteText += ' (' + author.slice(dashIdx + 3) + ')';
 				author = author.slice(0, dashIdx);
 			}
-			document.getElementById('quote-text').innerText = quoteText;
-			document.getElementById('quote-attribution').innerText = '— ' + author;
+			const textEl = document.getElementById('quote-text');
+			const attrEl = document.getElementById('quote-attribution');
+			const display = document.getElementById('quote-display');
+
+			// Reset any inline sizes from the previous quote
+			textEl.style.fontSize = '';
+			attrEl.style.fontSize = '';
+
+			textEl.innerText = quoteText;
+			attrEl.innerText = '— ' + author;
+
+			// Shrink both elements proportionally until the box fits
+			let textSize = parseFloat(getComputedStyle(textEl).fontSize);
+			const ratio = parseFloat(getComputedStyle(attrEl).fontSize) / textSize;
+			while (display.scrollHeight > display.clientHeight && textSize > 8) {
+				textSize -= 0.5;
+				textEl.style.fontSize = textSize + 'px';
+				attrEl.style.fontSize = (textSize * ratio) + 'px';
+			}
 		}
 
 		function refreshContent() {
