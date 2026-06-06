@@ -240,3 +240,32 @@ quotes.push(new QuoteInfo("You see these hands they're bruised and brown, they'r
 quotes.push(new QuoteInfo("After a certain age, even men lose interest in who is stronger and weaker. It's inevitable while violence is a crime. However, there are those who cannot change that value system. They are the ones who cannot ignore their own weakness. For one it may come from a wish to become strong from their past as a weakling, for another it may be their pride which will not forgive their own weakness. The value they place on strength put down deep roots into their being.  You may laugh it off as a simple complex, but to them it is a prayer to become stronger. That prayer sustains their uncanny daily study.", "Kouji Mori"));
 quotes.push(new QuoteInfo("Savor the fruit of life, my young friends. It has a sweet taste when it is fresh from the vine, but don't live too long. The taste turns bitter ... after a time.", "Kor, The Dahar Master"));
 
+(function() {
+	var ids = [
+		'PiLWGsVdeI', 'Qb-9r7CYzE', 'RfTNJq5Q6X', 'Roo91Gwc7Z', 'RzycdfbjTb',
+		'SEQfHvG9lm', 'SGL889sRaD', 'T86wcgKNo_', 'TRYzbR3w5u', 'TmQpv6ezx8',
+		'TvpumrAjtd', 'Ty1XXypnpb', 'TyHC3SouG2', 'U0eF4-LjlJ', 'U2GRAo8guI',
+		'UPhSMsL6hs', 'VJAs0vuutz', 'VLGNFH9BdD', 'WZrq6nAYMU', 'Xc2izSHkIp',
+		'YsmxznEA2x', 'Z-wotaQ7HK', 'ZO5aVuW2sC', 'ZfuyM2jZCm', 'ZgET48dPYE',
+		'_SQf6JK0Of', '_US3ZEO3yT', '_lqTklQZQ4', '_nVOPjyfly', '_t7ZZgvO-J',
+		'_uqyXr4bfk', 'abWz3QdmVA', 'b7_xifnvTH', 'bJm6vkCGDR', 'bjw2PDwn5X',
+		'd5D6wXhrE2', 'dQZJ8tr9wO', 'dXtu7EOPxY', 'dbJPu1ioCL', 'duK-dF5zus',
+		'e-SvzA2L2L', 'eASuJ0OqjO', 'eIJZbDo9Jq', 'eJ7d2jFWzf', 'f6YLRSxaD-',
+		'fCnu62-FVm', 'fGbn28tV7O', 'g9Z1EzRfd1', 'gCOsoD3m6N', 'gHFhgcLMX7',
+		'gHmk1pLRSB', 'gIQ-D_hAJA', 'gItly5cFkN', 'gZQRIcwCDz', 'g_2jlQi7pd',
+		'gzLbg7oJJH', 'hvlSHo19sz', 'iFF7P5lxU3', 'jChufkaJ_Y', 'jJerdpzHla',
+		'jRHGO7fczN', 'jaZURiCufZ', 'jr-1dg86FE', 'k1J_VDGBvt', 'kDVOO4tYlB',
+		'kJWK45ig6g', 'kTjEtNLF53', 'khlhfxs_mG', 'm8-oNgi0Ts', 'mMkobq_OMO',
+		'n0f1_zQWND', 'npp1tMwPLg', 'nuHXVEvCI-', 'nx5kyFTvLp', 'o1tGUncXhO',
+		'oWjE5u5Pi1', 'ohNuzvTKOZ', 'p3WglZZuDT', 'p5RUvY56b1', 'p8S48gwCOB',
+		'pTIehicylU', 'prNUHnlFTQ', 'qXsq5TIOux', 'qlKKyCJP2u', 'qsezdxy21J',
+		'rLq541Nvjq', 'rP2mE8Lm8o', 'rs4AT6_CDG', 'sJJPfQCzKn', 'srmbI3687S',
+		'svHCTNFqe2', 'swIE8zKAhl', 't1rNU7K1hf', 't6FN04aH7y', 'tLPRTFIAYv',
+		'tPIrGURoym', 'tWjnGsRmfC', 'ulT2_qKgvU', 'v5cVnlI6d9', 'vInb0i78H7',
+		'w56pG6fUI1', 'wauOwP48fW', 'wrxIHD64Hs', 'xmZpxV8b17', 'y20PkpHxUY',
+		'yZkMfmTFKY', 'ywvIbmZY7E', 'zEvgCttsff', 'zRKtzcN27p', 'zhfTyY8VaC',
+		'zrNJAn1gJV'
+	];
+	ids.forEach(function(id, i) { quotes[i].id = id; });
+})();
+

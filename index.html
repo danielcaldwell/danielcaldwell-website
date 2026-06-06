@@ -96,6 +96,7 @@
 			const container = document.getElementById('artwork-container');
 			container.classList.remove('showing-quote');
 			container.classList.remove('hidden');
+			history.replaceState(null, '', '#' + artwork.id);
 			document.getElementById('artwork').src = artwork.url;
 			document.getElementById('artwork').alt = artwork.title;
 			document.getElementById('artwork-title').innerText = artwork.title;
@@ -115,6 +116,7 @@
 			const container = document.getElementById('artwork-container');
 			container.classList.add('showing-quote');
 			container.classList.remove('hidden');
+			history.replaceState(null, '', '#' + quote.id);
 			let quoteText = '”' + quote.quote + '”';
 			let author = quote.author;
 			const dashIdx = author.indexOf(' - ');
@@ -203,7 +205,15 @@
 
 			startInterval();
 
-			if (Math.random() < 0.5) {
+			const hashId = window.location.hash.slice(1);
+			const hashImage = hashId && images.find(img => img.id === hashId);
+			const hashQuote = !hashImage && hashId && quotes.find(q => q.id === hashId);
+
+			if (hashImage) {
+				applyArtwork(hashImage);
+			} else if (hashQuote) {
+				applyQuote(hashQuote);
+			} else if (Math.random() < 0.5) {
 				applyQuote(ranQuote());
 			} else {
 				applyArtwork(ranImage());

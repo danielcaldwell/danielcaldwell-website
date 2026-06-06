@@ -66,4 +66,19 @@ images[51] = new ImageInfo( './images/Zion-The-Ampitheater.jpg', 'View from the 
 images[52] = new ImageInfo( './images/Zion-The-Hotel.jpg', 'View from Zion Entrance');
 images[53] = new ImageInfo( './images/Zion-The-Narrows.jpg', 'The Narrows at Zion');
 
-
+(function() {
+	var ids = [
+		'-fYWwyLTZ4', '072PFGv2KG', '0pO7FBYGFk', '0vzmk7ZeH3', '2LsUFy9gli',
+		'39UCR2FcOc', '3Iq1g1_cvi', '3_2RQgwK1d', '3iSGeBQlst', '4EuJYinj8V',
+		'4bMmM1EZm7', '4m__kKwaE-', '4s2Sr58GEt', '5RBveF0vil', '70SiKUCC8r',
+		'86zOluZjj9', '8HsZUUf0Y8', '8oOoDGZVs8', '9qK-FA3vHA', 'AGypZ7KndF',
+		'APgsXFL5mX', 'ARTBXrgTzp', 'ASYlYiSimp', 'BY80WwmxS5', 'C4jlqxpDjx',
+		'DZ7TqYR4Xy', 'EdWG62jzFV', 'Et_yqeD01e', 'FVBBSAR_TH', 'Gaqh8a2O9w',
+		'HU5LtZLr7v', 'Hxv3nUg6UG', 'IKm91jMN0G', 'JWAGhYvnI-', 'Jzx-TPfi9W',
+		'Ld_A5R7lC_', 'MIFWdUAaOs', 'MM_e3tyygM', 'MNfEmf6uAz', 'MTxDAck00T',
+		'MdB3TnkzbL', 'MgCcrkdQKa', 'MjnSyKQndO', 'Mp3cuy-Di-', 'MqwFQtXn20',
+		'Mtvc2qEDIX', 'MvWxYk5lnk', 'N7J3Y8X1nv', 'NHeKguaIou', 'NL-EAuemYj',
+		'N_T1OU3tEG', 'NbDSSbi18e', 'Owd-Ae0ns3', 'Pggy2Wb9wb'
+	];
+	ids.forEach(function(id, i) { images[i].id = id; });
+})();
