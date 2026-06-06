@@ -238,9 +238,6 @@
 				applyArtwork(ranImage());
 			}
 
-			startInterval();
-
-
 			// when the artwork or quote is clicked, cycle to the next one
 			function onContentClick(event) {
 				event.preventDefault();
@@ -264,9 +261,12 @@
 			document.getElementById('artwork-share-btn').addEventListener('click', copyCurrentLink);
 			document.getElementById('quote-share-btn').addEventListener('click', copyCurrentLink);
 
-			// slideshow toggle
+			// slideshow toggle — persisted to localStorage
 			const slideshowToggle = document.getElementById('slideshowToggle');
+			slideshowToggle.checked = localStorage.getItem('slideshow') !== 'off';
+			if (slideshowToggle.checked) startInterval();
 			slideshowToggle.addEventListener('change', () => {
+				localStorage.setItem('slideshow', slideshowToggle.checked ? 'on' : 'off');
 				if (slideshowToggle.checked) {
 					startInterval();
 				} else {
