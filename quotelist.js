@@ -7,6 +7,17 @@ class QuoteInfo {
 	}
 }
 
+function formatQuote(q) {
+	let text = '"' + q.quote + '"';
+	let author = q.author;
+	const dashIdx = author.indexOf(' - ');
+	if (dashIdx !== -1) {
+		text += ' (' + author.slice(dashIdx + 3) + ')';
+		author = author.slice(0, dashIdx);
+	}
+	return { text, author };
+}
+
 const quotes = [];
 quotes.push(new QuoteInfo( 'PiLWGsVdeI', 'Stuffy people who insist on putting bureaucracy into everything really miss the point.', 'Richard Stallman'));
 quotes.push(new QuoteInfo( 'Qb-9r7CYzE', 'Methodologies encourage rock stars to become compliance monkeys', 'Joel Splosky'));

@@ -134,13 +134,7 @@
 			container.classList.add('showing-quote');
 			container.classList.remove('hidden');
 			history.replaceState(null, '', '#' + quote.id);
-			let quoteText = '”' + quote.quote + '”';
-			let author = quote.author;
-			const dashIdx = author.indexOf(' - ');
-			if (dashIdx !== -1) {
-				quoteText += ' (' + author.slice(dashIdx + 3) + ')';
-				author = author.slice(0, dashIdx);
-			}
+			const { text: quoteText, author } = formatQuote(quote);
 			const textEl = document.getElementById('quote-text');
 			const attrEl = document.getElementById('quote-attribution');
 			const display = document.getElementById('quote-display');
@@ -182,7 +176,6 @@
 				const randomQuote = ranQuote();
 				refreshTimeoutID = setTimeout(() => {
 					applyQuote(randomQuote);
-					container.classList.remove('hidden');
 					startInterval();
 				}, fadeDuration);
 			} else {
@@ -191,7 +184,6 @@
 				refreshTimeoutID = setTimeout(() => {
 					newImage.onload = function() {
 						applyArtwork(randomArtwork);
-						container.classList.remove('hidden');
 						startInterval();
 					};
 					newImage.onerror = function() {

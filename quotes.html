@@ -26,13 +26,7 @@
             const card = document.createElement('div');
             card.className = 'quote-display';
 
-            let quoteText = '”' + q.quote + '”';
-            let author = q.author;
-            const dashIdx = author.indexOf(' - ');
-            if (dashIdx !== -1) {
-                quoteText += ' (' + author.slice(dashIdx + 3) + ')';
-                author = author.slice(0, dashIdx);
-            }
+            const { text: quoteText, author } = formatQuote(q);
 
             const text = document.createElement('div');
             text.className = 'quote-text';
