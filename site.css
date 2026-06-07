@@ -6,6 +6,7 @@
     --border-color: #333333;
     --fade-duration: 1s;
     --slider-knob: #ffffff;
+    --artwork-label-budget: 14rem; /* container padding (4rem) + label height estimate (10rem) */
 }
 
 [data-theme="dark"] {
@@ -252,8 +253,8 @@ input:checked + .slider:before {
 }
 
 #artwork-container .artwork-display {
-    max-height: calc(100vh - 14rem);
-    max-height: calc(100dvh - 14rem);
+    max-height: calc(100vh - var(--artwork-label-budget));
+    max-height: calc(100dvh - var(--artwork-label-budget));
 }
 
 .artwork-label {
