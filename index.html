@@ -166,7 +166,9 @@
 			}
 			const container = document.getElementById('artwork-container');
 
-    		const fadeDuration = 1000; // must match .artwork-container transition duration in site.css
+			const fadeDuration = parseFloat(
+				getComputedStyle(document.documentElement).getPropertyValue('--fade-duration')
+			) * 1000;
 
 			container.classList.add('hidden');
 
