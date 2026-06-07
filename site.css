@@ -5,6 +5,7 @@
     --settings-border: #e0e0e0;
     --border-color: #333333;
     --fade-duration: 1s;
+    --slider-knob: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -148,7 +149,7 @@ a {
     width: 0.8rem;
     left: 0.1rem;
     bottom: 0.1rem;
-    background-color: white;
+    background-color: var(--slider-knob);
     border-radius: 50%;
     transition: .4s;
 }
