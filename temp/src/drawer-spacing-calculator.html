@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabinet Drawer Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .cabinet {
+            position: relative;
+            width: 400px;
+            border: 10px solid lightblue;
+            margin-top: 20px;
+            padding: 5px;
+            background-color: white;
+        }
+        .drawer, .space, .gap {
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0px;
+        }
+        .drawer {
+            background-color: lightblue;
+        }
+        .space {
+            background-color: lightgreen;
+        }
+        .gap {
+            background-color: white;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Cabinet Drawer Calculator</h2>
+    <form id="cabinetForm">
+        <label for="interiorHeight">Interior Cabinet Height (inches):</label>
+        <input id="interiorHeight" value="30" required>
+        <br>
+        <label for="drawerHeights">Drawer Heights (comma-separated inches):</label>
+        <input type="text" id="drawerHeights" value="4,4,10" required>
+        <br>
+        <label for="drawerGap">Drawer Gap (inches):</label>
+        <select id="drawerGap">
+            <option value="0.125">1/8"</option>
+            <option value="0.25">1/4"</option>
+            <option value="0.375">3/8"</option>
+            <option value="0.5">1/2"</option>
+            <option value="0.675">5/8"</option>
+            <option value="0.875">7/8"</option>
+            <option value="1" selected>1"</option>
+            <option value="1.25">1 1/4"</option>
+            <option value="1.5">1 1/2"</option>
+            <option value="1.75">1 3/4"</option>
+            <option value="2">2"</option>
+        </select>
+        <br>
+        <label for="bottomPanelThickness">Bottom Panel Thickness (in):</label>
+        <select id="bottomPanelThickness">
+            <option value="0.125">1/8"</option>
+            <option value="0.25">1/4"</option>
+            <option value="0.375">3/8"</option>
+            <option value="0.5">1/2"</option>
+            <option value="0.625">5/8"</option>
+            <option value="0.75">3/4"</option>
+        </select>
+        <br>
+        <button type="submit">Calculate</button>
+    </form>
+    <div id="result"></div>
+    <div id="cabinetDiagram" class="cabinet"></div>
+
+    <script>
+        function remainingCabinetSpace(interiorHeight, drawerGap, drawerHeights, bottomPanelThickness) {
+            const topGap = drawerGap;
+            const bottomGap = 0.5;
+            
+            let usedSpace = topGap;
+            let breakdown = [{ type: 'gap', height: topGap }];
+            
+            drawerHeights.forEach((height, index) => {
+                breakdown.push({ type: 'drawer', height, storageSpace: height - 0.5 - bottomPanelThickness });
+                usedSpace += height;
+                
+                if (index < drawerHeights.length - 1 || usedSpace + bottomGap < interiorHeight) {
+                    breakdown.push({ type: 'gap', height: drawerGap });
+                    usedSpace += drawerGap;
+                }
+            });
+            
+            let remainingDrawerSpace = interiorHeight - usedSpace - bottomGap;
+            let overflow = Math.abs(remainingDrawerSpace);
+            let storageSpace = remainingDrawerSpace > 0 ? remainingDrawerSpace - 0.5 - bottomPanelThickness : 0;
+            
+            if (remainingDrawerSpace < 0) {
+                return { error: `Drawers exceed cabinet height by ${overflow} inches. Remove at least ${overflow} inches to fit.`, breakdown: [] };
+            }
+            
+            if (remainingDrawerSpace > 0) {
+                breakdown.push({ type: 'space', height: remainingDrawerSpace, storageSpace: storageSpace });
+            }
+            breakdown.push({ type: 'gap', height: bottomGap });
+            
+            return { remainingDrawerSpace, storageSpace, breakdown };
+        }
+
+        document.getElementById('cabinetForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const interiorHeight = parseFloat(document.getElementById('interiorHeight').value);
+            const drawerHeights = document.getElementById('drawerHeights').value.split(',').map(Number);
+            const drawerGap = parseFloat(document.getElementById('drawerGap').value);
+            const bottomPanelThickness = parseFloat(document.getElementById('bottomPanelThickness').value);
+            
+            const result = remainingCabinetSpace(interiorHeight, drawerGap, drawerHeights, bottomPanelThickness);
+            const resultDiv = document.getElementById('result');
+            const cabinetDiagram = document.getElementById('cabinetDiagram');
+            cabinetDiagram.innerHTML = '';
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span class="error">${result.error}</span>`;
+                return;
+            }
+            
+            resultDiv.innerText = `Remaining Space: ${result.remainingDrawerSpace} inches (Storage Space: ${result.storageSpace} inches)`;
+            
+            result.breakdown.forEach(section => {
+                const div = document.createElement('div');
+
+                // make the div height at least 0.5 to ensure the text will fit. 
+                if (section.height < 0.5){
+                    div.style.height = `${( 0.5 / interiorHeight) * 600}px`;
+                } else {
+                    div.style.height = `${( section.height / interiorHeight) * 600}px`;
+                }
+                
+                div.className = section.type;
+                div.innerText = `${section.height} in${(section.type === 'drawer' | section.type ==='space') ? ` (${section.storageSpace} in)` : ''}`;
+                cabinetDiagram.appendChild(div);
+            });
+
+        });
+    </script>
+</body>
+</html>

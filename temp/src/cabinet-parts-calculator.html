@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cabinet Carcass Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .description {
+      font-size: 0.9em;
+      color: gray;
+      margin-bottom: 10px;
+    }
+    input, select {
+      margin-bottom: 15px;
+      padding: 5px;
+      width: 100%;
+      max-width: 300px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #results {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background-color: #f8f9fa;
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cabinet Carcass Calculator</h1>
+  <form id="cabinetForm">
+    <label for="exteriorHeight">Exterior Height (in):</label>
+    <div class="description">The total height of the cabinet including the toekick.</div>
+    <input type="number" id="exteriorHeight" value="34.5" step="0.1">
+
+    <label for="exteriorWidth">Exterior Width (in):</label>
+    <div class="description">The total width of the cabinet from side to side.</div>
+    <input type="number" id="exteriorWidth" value="30" step="0.1">
+
+    <label for="cabinetDepth">Cabinet Depth (in):</label>
+    <div class="description">The total depth of the cabinet from front to back.</div>
+    <input type="number" id="cabinetDepth" value="24" step="0.1">
+
+    <label for="toekickHeight">Toekick Height (in):</label>
+    <div class="description">The height of the toekick space at the bottom of the cabinet.</div>
+    <input type="number" id="toekickHeight" value="3.5" step="0.1">
+
+    <label for="stringerWidth">Stringer Width (in):</label>
+    <div class="description">The width of the support stringers for the cabinet.</div>
+    <input type="number" id="stringerWidth" value="4.5" step="0.1">
+
+    <label for="woodThickness">Wood Thickness (in):</label>
+    <div class="description">The thickness of the wood used for the cabinet sides, bottom, and other parts.</div>
+    <select id="woodThickness">
+      <option value="0.5">1/2"</option>
+      <option value="0.625" selected>5/8"</option>
+      <option value="0.75">3/4"</option>
+    </select>
+
+    <label for="backPanelThickness">Back Panel Thickness (in):</label>
+    <div class="description">The thickness of the back panel of the cabinet.</div>
+    <select id="backPanelThickness">
+      <option value="0.125">1/8"</option>
+      <option value="0.25" selected>1/4"</option>
+      <option value="0.375">3/8"</option>
+      <option value="0.5">1/2"</option>
+    </select>
+
+    <label for="doorThickness">Door Thickness (in):</label>
+    <div class="description">The thickness of the cabinet doors.</div>
+    <select id="doorThickness">
+      <option value="0.5">1/2"</option>
+      <option value="0.75" selected>3/4"</option>
+      <option value="1">1"</option>
+    </select>
+
+    <label for="dadoDepth">Dado Depth (in):</label>
+    <div class="description">The depth of the dado grooves for the back panel and bottom panel.</div>
+    <select id="dadoDepth">
+        <option value="0.25">1/4"</option>
+        <option value="0.375" selected>3/8"</option>
+      </select>
+
+    <label for="drawerGlides">Drawer Glides:</label>
+    <div class="description">The type of drawer glides used (side mount or under mount).</div>
+    <select id="drawerGlides">
+      <option value="side_mount" selected>Side Mount</option>
+      <option value="under_mount">Under Mount</option>
+    </select>
+
+    <label for="faceFrameThickness">Face Frame Thickness:</label>
+    <div class="description">Select the thickness of the face frame.</div>
+    <select id="faceFrameThickness">
+      <option value="0">Frameless (0")</option>
+      <option value="0.5">1/2"</option>
+      <option value="0.75">3/4"</option>
+    </select>
+
+    <button type="button" id="calculateButton">Calculate</button>
+  </form>
+
+  <div id="results"></div>
+
+  <script>
+    function toFraction(decimal) {
+      const tolerance = 1.0e-6;
+      if (Math.abs(decimal) < tolerance) return 0;
+      let numerator = 1, denominator = 1;
+      while (Math.abs(numerator / denominator - decimal) > tolerance) {
+        if (numerator / denominator < decimal) {
+          numerator++;
+        } else {
+          denominator++;
+        }
+      }
+      const wholeNumber = Math.floor(decimal);
+      numerator = numerator - wholeNumber * denominator;
+      if (numerator === 0) return wholeNumber;
+      return wholeNumber > 0
+        ? `${wholeNumber} ${numerator}/${denominator}`
+        : `${numerator}/${denominator}`;
+    }
+
+    function calculateCabinetCarcass({
+        exteriorHeight = 34.5,
+        exteriorWidth = 30,
+        cabinetDepth = 24,
+        toekickHeight = 3.5,
+        stringerWidth = 4.5,
+        woodThickness = 0.625,
+        backPanelThickness = 0.125,
+        doorThickness = 0.75,
+        dadoDepth = 0.375,
+        drawerGlides = "side_mount"
+        } = {}) {
+        const faceFrameThickness = parseFloat(document.getElementById("faceFrameThickness").value);
+        const sideHeight = exteriorHeight;
+        const sideWidth = cabinetDepth - doorThickness - faceFrameThickness;
+        const stringerLength = exteriorWidth - 2 * woodThickness;
+        const stringerHeight = stringerWidth;
+        const toekickLength = stringerLength;
+        const backPanelHeight = exteriorHeight;
+        const backPanelWidth = exteriorWidth - 2 * woodThickness + 2 * dadoDepth;
+        const interiorHeight = exteriorHeight - 2 * woodThickness - toekickHeight;
+        const interiorWidth = exteriorWidth - 2 * woodThickness;
+        const interiorDepth = cabinetDepth - doorThickness - faceFrameThickness - woodThickness - backPanelThickness;
+
+        const bottomPanelLength = exteriorWidth - 2 * woodThickness + 2 * dadoDepth;
+        const bottomPanelWidth = cabinetDepth - doorThickness - faceFrameThickness - woodThickness - backPanelThickness ;
+
+        let drawerGlideLength;
+        if (drawerGlides === "under_mount") {
+            drawerGlideLength = Math.floor((interiorDepth - doorThickness) / 3) * 3;
+        } else if (drawerGlides === "side_mount") {
+            drawerGlideLength = Math.floor((interiorDepth - doorThickness) / 2) * 2;
+        } else {
+            throw new Error("Drawer glides must be 'side_mount' or 'under_mount'.");
+        }
+
+        const drawerSideLength = drawerGlideLength;
+        let drawerFrontBackLength;
+        if (drawerGlides === "under_mount") {
+            if (woodThickness === 0.625) {
+            drawerFrontBackLength = exteriorWidth - 0.375 - 2 * woodThickness;
+            } else if (woodThickness === 0.5) {
+            drawerFrontBackLength = exteriorWidth - 0.625 - 2 * woodThickness;
+            } else if (woodThickness === 0.75) {
+            throw new Error("Undermount drawers are only available for 1/2\" and 5/8\" cabinets.");
+            }
+        } else if (drawerGlides === "side_mount") {
+            drawerFrontBackLength = exteriorWidth - 1 - 2 * woodThickness;
+        }
+
+        return {
+            sides: { height: toFraction(sideHeight), width: toFraction(sideWidth) },
+            stringers: { length: toFraction(stringerLength), width: toFraction(stringerHeight) },
+            toekick: { length: toFraction(toekickLength), width: toFraction(toekickHeight) },
+            backPanel: { height: toFraction(backPanelHeight), width: toFraction(backPanelWidth) },
+            bottomPanel: { length: toFraction(bottomPanelLength), width: toFraction(bottomPanelWidth) },
+            interiorDimensions: {
+                height: toFraction(interiorHeight),
+                width: toFraction(interiorWidth),
+                depth: toFraction(interiorDepth),
+            },
+            drawerGlides: {
+                type: drawerGlides,
+                length: toFraction(drawerGlideLength),
+            },
+            drawerSides: { length: toFraction(drawerSideLength) },
+            drawerFrontBack: { length: toFraction(drawerFrontBackLength) },
+            faceFrameThickness: { thickness: toFraction(faceFrameThickness)},
+        };
+    }
+
+    function displayResults(parts) {
+      const table = document.createElement('table');
+      const headerRow = table.insertRow();
+      headerRow.insertCell().textContent = 'Part Name';
+      headerRow.insertCell().textContent = 'Length';
+      headerRow.insertCell().textContent = 'Width';
+      headerRow.insertCell().textContent = 'Depth';
+
+      // Extracting and displaying each part from the parts object
+      const partEntries = [
+        { name: 'Sides', length: parts.sides.width, width: parts.sides.height, depth: '' },
+        { name: 'Stringers', length: parts.stringers.length, width: parts.stringers.width, depth: '' },
+        { name: 'Toekick', length: parts.toekick.length, width: parts.toekick.width, depth: '' },
+        { name: 'Back Panel', length: parts.backPanel.width, width: parts.backPanel.height, depth: '' },
+        { name: 'Bottom Panel', length: parts.bottomPanel.length, width: parts.bottomPanel.width, depth: '' },
+        { name: 'Interior Dimensions', length: parts.interiorDimensions.height, width: parts.interiorDimensions.width, depth: parts.interiorDimensions.depth },
+        { name: 'Drawer Glide Length', length: parts.drawerGlides.length, width: '', depth: '' },
+        { name: 'Drawer Sides', length: parts.drawerSides.length, width: '', depth: '' },
+        { name: 'Drawer Front/Back', length: parts.drawerFrontBack.length, width: '', depth: '' },
+        { name: 'Face Frame Thickness', length: parts.faceFrameThickness.thickness, width: '', depth: '' },
+      ];
+
+      partEntries.forEach(part => {
+        const row = table.insertRow();
+        row.insertCell().textContent = part.name || ''; // Part Name
+        row.insertCell().textContent = part.length || ''; // Length
+        row.insertCell().textContent = part.width || ''; // Width
+        row.insertCell().textContent = part.depth || ''; // Depth
+      });
+
+      document.getElementById('results').innerHTML = ''; // Clear previous results
+      document.getElementById('results').appendChild(table); // Append the table to the results div
+    }
+
+    document.getElementById("calculateButton").addEventListener("click", () => {
+      try {
+        const inputs = {
+          exteriorHeight: parseFloat(document.getElementById("exteriorHeight").value),
+          exteriorWidth: parseFloat(document.getElementById("exteriorWidth").value),
+          cabinetDepth: parseFloat(document.getElementById("cabinetDepth").value),
+          toekickHeight: parseFloat(document.getElementById("toekickHeight").value),
+          stringerWidth: parseFloat(document.getElementById("stringerWidth").value),
+          woodThickness: parseFloat(document.getElementById("woodThickness").value),
+          backPanelThickness: parseFloat(document.getElementById("backPanelThickness").value),
+          doorThickness: parseFloat(document.getElementById("doorThickness").value),
+          dadoDepth: parseFloat(document.getElementById("dadoDepth").value),
+          drawerGlides: document.getElementById("drawerGlides").value,
+        };
+
+        const results = calculateCabinetCarcass(inputs);
+        displayResults(results);
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    });
+  </script>
+</body>
+</html>
+

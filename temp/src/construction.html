@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feet and Inches Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, select, button {
+            margin: 5px 0;
+            padding: 5px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .input-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 110px;
+        }
+        label {
+            font-size: 1em;
+            margin-bottom: 2px;
+        }
+        #result, #divisionTable {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        table {
+            border-collapse: collapse;
+            width: 70%;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #divisionTable {
+            margin-top: 30px;
+        }
+        
+        #divisionTable table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        #divisionTable th,
+        #divisionTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        #divisionTable th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        
+        #divisionTable tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        #divisionTable tr:hover {
+            background-color: #f0f0f0;
+        }
+        @media (max-width: 600px) {
+            body {
+                margin: 8px;
+            }
+            .input-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+            .input-group {
+                min-width: 0;
+            }
+            input, select, button {
+                width: 100%;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Feet and Inches Calculator</h1>
+    <div>
+        <div class="input-row">
+            <div class="input-group">
+                <label for="feet1">Feet:</label>
+                <input type="number" id="feet1" value="0" name="inputFeet1">
+            </div>
+            <div class="input-group">
+                <label for="inches1">Inches:</label>
+                <input type="number" id="inches1" value="0" name="inputInches1">
+            </div>
+            <div class="input-group">
+                <label for="fractionNumerator1">Inches - Numerator:</label>
+                <input type="number" id="fractionNumerator1" value="0">
+            </div>
+            <div class="input-group">
+                <label for="fractionDenominator1">Inches - Denominator:</label>
+                <input type="number" id="fractionDenominator1" value="1">
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="input-row">
+            <div class="input-group" style="min-width:150px;">
+                <label for="operation">Select Operation:</label>
+                <select id="operation" name="operation" onchange="toggleInputMode()">
+                    <option value="add">Add</option>
+                    <option value="subtract">Subtract</option>
+                    <option value="multiply">Multiply</option>
+                    <option value="divide">Divide</option>
+                    <option value="modulo">Modulo</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div id="feetInchesInput">
+        <div class="input-row">
+            <div class="input-group">
+                <label for="feet2">Feet:</label>
+                <input type="number" id="feet2" value="0" name="inputFeet2">
+            </div>
+            <div class="input-group">
+                <label for="inches2">Inches:</label>
+                <input type="number" id="inches2" value="0" name="inputInches2">
+            </div>
+            <div class="input-group">
+                <label for="fractionNumerator2">Inches - Numerator:</label>
+                <input type="number" id="fractionNumerator2" value="0">
+            </div>
+            <div class="input-group">
+                <label for="fractionDenominator2">Inches - Denominator:</label>
+                <input type="number" id="fractionDenominator2" value="1">
+            </div>
+        </div>
+    </div>
+    <div id="decimalInput" style="display: none;">
+        <div class="input-row">
+            <div class="input-group">
+                <label for="decimal2">Value 2 (Decimal):</label>
+                <input type="number" id="decimal2" step="0.01" value="0">
+            </div>
+        </div>
+    </div>
+    <div id="errorMessage" style="color: darkred; display: none;">asdfasdf</div>
+    <div>
+        <button onclick="calculate()" id="calculateButton" aria-label="Calculate total inches">Calculate</button>
+    </div>
+    <div id="result"></div>
+    <div id="divisionTable"></div>
+
+    <script>
+        function toggleInputMode() {
+            const operation = document.getElementById("operation").value;
+            const feetInchesInput = document.getElementById("feetInchesInput");
+            const decimalInput = document.getElementById("decimalInput");
+
+            if (operation === "add" || operation === "subtract") {
+                feetInchesInput.style.display = "block";
+                decimalInput.style.display = "none";
+            } else {
+                feetInchesInput.style.display = "none";
+                decimalInput.style.display = "block";
+            }
+            document.getElementById("divisionTable").innerHTML = "";
+        }
+
+        function fractionalInchesToDecimalInches(numerator, denominator) {
+            return denominator ? numerator / denominator : 0;
+        }
+
+        function convertToTotalInches(feet, inches, fractionNumerator, fractionDenominator) {
+            const fractionAsDecimal = fractionalInchesToDecimalInches(fractionNumerator, fractionDenominator);
+            return feet * 12 + inches + fractionAsDecimal;
+        }
+
+        function convertDecimalInchestoFeetAndDecimalInches(totalInches) {
+            const feet = Math.floor(totalInches / 12);
+            const remainingInches = totalInches % 12;
+            return { feet, inches: remainingInches };
+        }
+
+        function convertDecimalInchesToFractionalInches(inchesDecimal) {
+            const nearestFraction = Math.round(inchesDecimal * 32) / 32;
+            const wholeInches = Math.floor(nearestFraction);
+            const fractionalInches = nearestFraction - wholeInches;
+
+            let numerator = Math.round(fractionalInches * 32);
+            let denominator = 32;
+
+            const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+            const divisor = gcd(numerator, denominator);
+            numerator /= divisor;
+            denominator /= divisor;
+
+            return { wholeInches, numerator, denominator };
+        }
+
+
+        function convertDecimalInchesToMetricCentimeter(totalInches) {
+            return (totalInches * 2.54).toFixed(2);
+        }
+
+        function decimalInchesToFeetAndFractionalInches(totalInches) {
+            const { feet, inches } = convertDecimalInchestoFeetAndDecimalInches(totalInches);
+            const fraction = convertDecimalInchesToFractionalInches(inches);
+
+            return {feet: feet, 
+                    inches: fraction.wholeInches, 
+                    numerator: fraction.numerator,
+                    denominator: fraction.denominator
+            }
+        }
+        
+        function fractionalFeetInchesToText(fractionalFeetInches){
+            let result = '';
+            
+            if (fractionalFeetInches.feet > 0) {
+                result += `${fractionalFeetInches.feet} ft `;
+            }
+            if (fractionalFeetInches.inches > 0 || fractionalFeetInches.numerator > 0) {
+                result += `${fractionalFeetInches.inches}`;
+                if (fractionalFeetInches.numerator > 0) {
+                    result += ` ${fractionalFeetInches.numerator}/${fractionalFeetInches.denominator}`;
+                }
+                result += ' in';
+            } else if (fractionalFeetInches.feet === 0) {
+                result = '0 in';
+            }
+
+            return result;
+        }
+
+        /**
+         * Converts a measurement in fractional inches to a text representation.
+         * @param {number} inches - The measurement in inches.
+         * @returns {string} The text representation of the measurement.
+         */
+        function fractionalInchesToText(inches) {
+            return inches.wholeInches + (inches.numerator > 0 ? ` ${inches.numerator}/${inches.denominator}` : '') + " in";
+        }
+
+
+        const calculate = function() {
+            const feet1 = parseInt(document.getElementById("feet1").value) || 0;
+            const inches1 = parseInt(document.getElementById("inches1").value) || 0;
+            
+            const operation = document.getElementById("operation").value;
+
+            const feet2 = parseInt(document.getElementById("feet2").value) || 0;
+            const inches2 = parseInt(document.getElementById("inches2").value) || 0;
+
+            const fractionNumerator1 = parseInt(document.getElementById("fractionNumerator1").value) || 0;
+            const fractionDenominator1 = parseInt(document.getElementById("fractionDenominator1").value) || 1;
+
+            const totalInches1 = convertToTotalInches(feet1, inches1, fractionNumerator1, fractionDenominator1);
+            let totalInches2 = 0;
+            let resultInches = 0;
+
+            if (operation === "add" || operation === "subtract") {
+                const feet2 = parseInt(document.getElementById("feet2").value) || 0;
+                const inches2 = parseInt(document.getElementById("inches2").value) || 0;
+                const fractionNumerator2 = parseInt(document.getElementById("fractionNumerator2").value) || 0;
+                const fractionDenominator2 = parseInt(document.getElementById("fractionDenominator2").value) || 1;
+
+                totalInches2 = convertToTotalInches(feet2, inches2, fractionNumerator2, fractionDenominator2);
+                resultInches = operation === "add" ? totalInches1 + totalInches2 : totalInches1 - totalInches2;
+            } else {
+                const decimal2 = parseFloat(document.getElementById("decimal2").value) || 0;
+                if (operation === "multiply") {
+                    resultInches = totalInches1 * decimal2;
+                    document.getElementById("divisionTable").innerHTML = "";
+                } else if (operation === "divide") {
+                    resultInches = totalInches1 / decimal2;
+                    const interval = resultInches;
+                    const totalDivisions = decimal2;
+                    let tableHTML = `
+                        <h3>Division Table</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>Distance (ft/in)</th>
+                                    <th>Distance (fractional inches)</th>
+                                    <th>Distance (decimal inches)</th>
+                                    <th>Distance (metric)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    for (let i = 1; i <= totalDivisions; i++) {
+                        const currentDistance = interval * i;
+                        const fractionalInches = convertDecimalInchesToFractionalInches(currentDistance);
+                        const fractionalFeetInches = decimalInchesToFeetAndFractionalInches(currentDistance);
+                        tableHTML += `
+                            <tr>
+                                <td>${i}</td>
+                                <td>${fractionalFeetInchesToText(fractionalFeetInches)}</td>
+                                <td>${fractionalInchesToText(fractionalInches)}</td>
+                                <td>${currentDistance.toFixed(2)} in</td>
+                                <td>${convertDecimalInchesToMetricCentimeter(currentDistance)} cm</td>
+                            </tr>
+                        `;
+                    }
+                    tableHTML += `
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById("divisionTable").innerHTML = tableHTML;
+                } else if (operation === "modulo") {
+                    // Modulo operation: divide totalInches1 by decimal2, show all full parts and the remainder
+                    const partLength = decimal2;
+                    const numFullParts = Math.floor(totalInches1 / partLength);
+                    const remainder = totalInches1 % partLength;
+                    let tableHTML = `
+                        <h3>Modulo Division Table</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>Distance (ft/in)</th>
+                                    <th>Distance (fractional inches)</th>
+                                    <th>Distance (decimal inches)</th>
+                                    <th>Distance (metric)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    for (let i = 1; i <= numFullParts; i++) {
+                        const currentDistance = partLength * i;
+                        const fractionalInches = convertDecimalInchesToFractionalInches(currentDistance);
+                        const fractionalFeetInches = decimalInchesToFeetAndFractionalInches(currentDistance);
+                        tableHTML += `
+                            <tr>
+                                <td>${i}</td>
+                                <td>${fractionalFeetInchesToText(fractionalFeetInches)}</td>
+                                <td>${fractionalInchesToText(fractionalInches)}</td>
+                                <td>${currentDistance.toFixed(2)} in</td>
+                                <td>${convertDecimalInchesToMetricCentimeter(currentDistance)} cm</td>
+                            </tr>
+                        `;
+                    }
+                    // Add remainder row if any
+                    if (remainder > 0) {
+                        const totalDistance = partLength * numFullParts + remainder;
+                        const fractionalInches = convertDecimalInchesToFractionalInches(totalInches1);
+                        const fractionalFeetInches = decimalInchesToFeetAndFractionalInches(totalInches1);
+                        tableHTML += `
+                            <tr style="font-weight:bold; background:#ffe0e0;">
+                                <td>Remainder</td>
+                                <td>${fractionalFeetInchesToText(fractionalFeetInches)}</td>
+                                <td>${fractionalInchesToText(fractionalInches)}</td>
+                                <td>${totalInches1.toFixed(2)} in</td>
+                                <td>${convertDecimalInchesToMetricCentimeter(totalInches1)} cm</td>
+                            </tr>
+                        `;
+                        // Add leftover row
+                        const leftoverFractionalInches = convertDecimalInchesToFractionalInches(remainder);
+                        const leftoverFractionalFeetInches = decimalInchesToFeetAndFractionalInches(remainder);
+                        tableHTML += `
+                            <tr style="font-weight:bold; background:#e0ffe0;">
+                                <td>Leftover</td>
+                                <td>${fractionalFeetInchesToText(leftoverFractionalFeetInches)}</td>
+                                <td>${fractionalInchesToText(leftoverFractionalInches)}</td>
+                                <td>${remainder.toFixed(2)} in</td>
+                                <td>${convertDecimalInchesToMetricCentimeter(remainder)} cm</td>
+                            </tr>
+                        `;
+                    }
+                    tableHTML += `
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById("divisionTable").innerHTML = tableHTML;
+                    resultInches = remainder;
+                }
+            }
+
+            const { feet, inches } = convertDecimalInchestoFeetAndDecimalInches(resultInches);
+            const fractionalInches = convertDecimalInchesToFractionalInches(resultInches);
+            const metric = convertDecimalInchesToMetricCentimeter(resultInches);
+            const fractionalFeetInches = decimalInchesToFeetAndFractionalInches(resultInches);
+
+            let resultHTML = `
+                <p>Result:</p>
+                <div style="display: flex; flex-direction: column; max-width: fit-content; text-align: left;">
+                    <div style="display: table; width: 100%; text-align: left;">
+                        <div style="display: table-row;">
+                            <div style="display: table-cell; padding-right: 35px;">Decimal Inches:</div>
+                            <div style="display: table-cell;">${resultInches.toFixed(2)} in</div>
+                        </div>
+                        <div style="display: table-row;">
+                            <div style="display: table-cell; padding-right: 35px;">Fractional Inches:</div>
+                            <div style="display: table-cell;">${fractionalInchesToText(fractionalInches)}</div>
+                        </div>
+                        <div style="display: table-row;">
+                            <div style="display: table-cell; padding-right: 35px;">Fractional Feet & Inches:</div>
+                            <div style="display: table-cell;">${fractionalFeetInchesToText(fractionalFeetInches)}</div>
+                        </div>
+                        <div style="display: table-row;">
+                            <div style="display: table-cell; padding-right: 35px;">Metric:</div>
+                            <div style="display: table-cell;">${metric} cm</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById("result").innerHTML = resultHTML;
+        };
+
+        // Use inline handler for now
+        const calculateButton = document.getElementById("calculateButton");
+        calculateButton.onclick = calculate; 
+    </script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+    <title>A static page</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        div.main {
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 4em;
+        }
+        
+        .moon-phase {
+            font-size: 4em;
+        }
+        .moon-phase-name {
+            font-size: 1em;
+        }
+        .days-until-full-moon {
+            font-size: 1em;
+        }
+
+        .moon-phase {
+            font-size: min(4em, 12vw);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .moon-phase-name {
+            font-size: min(1.2em, 5vw);
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background-color: #ccc;
+            margin: 15px 0;
+        }
+
+        .days-until-container {
+            text-align: left;
+        }
+
+        .days-until-full-moon {
+            font-weight: bold;
+        }
+
+        .moon-times {
+            text-align: left;
+            margin: 15px 0;
+        }
+
+        .moon-time {
+            margin: 8px 0;
+        }
+
+        .moon-time span {
+            font-weight: bold;
+        }
+
+        .days-until-container, .moon-times {
+            word-wrap: break-word;
+            font-size: min(1em, 4vw);
+        }
+
+        .info-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .calendar-header {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        .weekday {
+            font-weight: bold;
+            padding: 5px;
+            color: #666;
+        }
+
+        .calendar-day {
+            padding: 8px;
+            border-radius: 50%;
+        }
+
+        .today {
+            background-color: #aaa;
+            color: white;
+        }
+
+        .other-month {
+            color: #ccc;
+        }
+        
+
+        .location-info {
+            text-align: center;
+        }
+
+        .coordinates {
+            margin-bottom: 15px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        .coordinates span{ 
+            font-weight: bold;
+        }
+
+        .decimal-coords {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .sun-times {
+            text-align: left;
+            margin: 15px 0;
+        }
+        
+        .sun-time {
+            margin: 8px 0;
+        }
+
+        .sun-time span {
+            font-weight: bold;
+        }
+
+        .dst-info {
+            margin-top: 15px;
+            text-align: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .dst-status {
+            font-weight: bold;
+            color: #2c5282;
+            margin-top: 5px;
+        }
+
+        .weather-icon {
+            font-size: min(4em, 12vw);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .weather-info {
+            text-align: center;
+        }
+
+        .temperature-label {
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .temperature {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .weather-description {
+            font-size: 0.8em;
+            color: #666;
+            text-transform: capitalize;
+        }
+
+        .location-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c5282;
+        }
+
+        .boxes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+            max-width: 90%;
+            margin: 0 auto;
+        }
+
+        .info-box {
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0; /* Remove individual margins */
+            width: 300px; /* Fixed width */
+            min-width: 280px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: white;
+        }
+
+        /* Responsive design */
+        @media (max-width: 968px) {
+            .boxes-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .info-box {
+                width: 90%; /* Full width on mobile */
+                max-width: 400px;
+            }
+        }
+
+        /* Keep other specific content styles */
+        .earth-emoji, .weather-icon {
+            font-size: min(4em, 12vw);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .info-box {
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0; /* Remove individual margins */
+            width: 300px; /* Fixed width */
+            min-width: 280px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: white;
+            text-align: center; /* Center the content */
+        }
+
+        .app-icon {
+            font-size: min(2em, 6vw); /* Same size as other emojis */
+            margin-bottom: 10px;
+        }
+
+        .app-title {
+            font-weight: bold;
+            font-size: min(0.8em, 5vw);
+        }
+
+        .application-container{
+            display: flex; /* Use flexbox for horizontal layout */
+            flex-wrap: wrap; /* Allow wrapping to the next line when necessary */
+            justify-content: center; /* Center the items */
+            gap: 20px; /* Space between items */
+        }
+
+        .application { 
+            max-width: 90px;
+            flex: 1 0 100%; /* Stack items vertically on small screens */
+        }
+    </style>
+
+    
+
+</head>
+
+<body>
+    <div class="main">
+        <h1 id="date-time">test</h1>
+        <div class="logo">😐</div>          
+
+        <div class="boxes-container">
+            
+            <div class="info-box">
+                <div id="weather-icon" class="weather-icon">🌡️</div>
+                <div class="weather-info">
+                    <div id="location-name" class="location-name">Loading location...</div>
+                    <div class="temperature-label">Current Temperature</div>
+                    <div id="temperature" class="temperature">Loading...</div>
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="earth-emoji" id="earth-emoji">🌍</div>
+                <div id="daylight-status" class="daylight-status">Loading...</div>
+                <hr>
+                <div class="sun-times">
+                    <div class="sun-time">
+                        🌅 Sunrise: <span id="sunrise-time">--:--</span>
+                    </div>
+                    <div class="sun-time">
+                        🌄 Sunset: <span id="sunset-time">--:--</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="coordinates">
+                    <div>Latitude: <span id="latitude">Loading...</span></div>
+                    <div>Longitude: <span id="longitude">Loading...</span></div>
+                    <div>Latitude (DMS): <span id="latitude_dms">Loading...</span></div>
+                    <div>Longitude (DMS): <span id="longitude_dms">Loading...</span></div>
+                </div>
+                <div class="dst-info">
+                    <div>Daylight Savings Status:</div>
+                    <div id="dst-status" class="dst-status">Checking...</div>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="moon-phase" id="moon-phase">🌑</div>
+                <div class="moon-phase-name" id="moon-phase-name">New Moon</div>
+                <hr>
+                <div class="moon-times">
+                    <div class="moon-time">
+                        🌅 Moonrise: <span id="moonrise-time">--:--</span>
+                    </div>
+                    <div class="moon-time">
+                        🌄 Moonset: <span id="moonset-time">--:--</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="days-until-container">
+                    <div>Next Full Moon in : <span class="days-until-full-moon" id="days-until-full-moon"></span> days</div>
+                    <div>Next New Moon in : <span id="days-until-new-moon"></span> days</div>
+    
+                </div>
+            </div>
+            <div class="info-box calendar-box">
+                <div class="calendar-header" id="calendar-month">March 2024</div>
+                <div class="calendar-grid">
+                    <div class="weekday">Su</div>
+                    <div class="weekday">Mo</div>
+                    <div class="weekday">Tu</div>
+                    <div class="weekday">We</div>
+                    <div class="weekday">Th</div>
+                    <div class="weekday">Fr</div>
+                    <div class="weekday">Sa</div>
+                    <!-- Calendar days will be inserted here by JavaScript -->
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="weather-icon">🖥</div>
+                <div class="weather-info">
+                    <div class="location-name">Applications</div>
+                    <hr>
+                    <div class="application-container">
+                        <div class="application">
+                            <a href="construction.html" style="text-decoration: none; color: inherit;">
+                                <div class="app-icon">🧮</div>
+                                <div class="app-title">Construction Calc</div>
+                            </a>
+                        </div>
+                        <div class="application">
+                            <a href="route-weather.html" style="text-decoration: none; color: inherit;">
+                                <div class="app-icon">☁</div>
+                                <div class="app-title">Route Weather</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="date.js"></script>
+    <script src="moon.js"></script>
+    <script src="calendar.js"></script>
+    <script src="location.js"></script>
+    <script src="weather.js"></script>
+    <script>
+
+
+        window.onload = async function() {
+            
+
+            let currentDate = new Date();
+
+            document.getElementById('date-time').innerText = getFormattedDateTime();
+            
+            if (isDST(currentDate)) {
+                document.getElementById('dst-status').textContent = "Daylight Savings Time";
+            } else {
+                document.getElementById('dst-status').textContent = "Standard Time";
+            }
+
+            // Update information that does require the location
+            getLocation()
+            .then(async ({ latitude, longitude, status }) => {
+                document.getElementById('latitude').innerText = latitude;
+                document.getElementById('longitude').innerText = longitude;
+
+                let coordsDMS = getLocationAsDMS(latitude, longitude);
+                document.getElementById('latitude_dms').textContent = coordsDMS.latitudeDMS;
+                document.getElementById('longitude_dms').textContent = coordsDMS.longitudeDMS;
+
+                const earthEmoji = getEarthEmojiByLongitude(longitude);
+                document.getElementById('earth-emoji').innerText = earthEmoji;
+                console.log(status);
+
+                calculateSunTimes(latitude, longitude, currentDate)
+                .then( ({sunrise, sunset, phase}) => {
+                    document.getElementById('sunrise-time').textContent = formatTime(sunrise);
+                    document.getElementById('sunset-time').textContent = formatTime(sunset);
+                    document.getElementById('daylight-status').textContent = phase;
+                })
+
+                generateCalendar();
+
+                // Get and update weather
+                const weatherData = await getWeather(latitude, longitude);
+                
+                if (weatherData.error) {
+                    document.getElementById('location-name').textContent = 'Location unavailable';
+                    document.getElementById('temperature').textContent = weatherData.error;
+                    return;
+                }
+
+                // Update location
+                document.getElementById('location-name').textContent = 
+                    `${weatherData.location.city}, ${weatherData.location.state}`;
+                
+                // Update weather icon
+                document.getElementById('weather-icon').textContent = 
+                    getWeatherEmoji(weatherData.description.toLowerCase());
+                
+                // Update temperature
+                document.getElementById('temperature').innerHTML = 
+                    `${weatherData.temperature.f}°F / ${weatherData.temperature.c}°C<br>
+                     <span class="weather-description">${weatherData.description}</span>`;
+
+
+                    
+                getMoonInfo(latitude, longitude, currentDate)
+                .then((moonInfo) => {
+
+                    // Update information that doesn't require the location
+                    document.getElementById('moon-phase').innerText = moonInfo.currentPhaseEmoji;
+                    document.getElementById('moon-phase-name').innerText = moonInfo.currentPhase;
+                    document.getElementById('days-until-full-moon').innerText = moonInfo.nextPhases['Full Moon'].daysUntil;
+                    document.getElementById('days-until-new-moon').innerText = moonInfo.nextPhases['New Moon'].daysUntil;
+                    document.getElementById('moonrise-time').innerText = moonInfo.moonrise;
+                    document.getElementById('moonset-time').innerText = moonInfo.moonset;
+                })
+                
+                
+
+                
+            })
+            .catch(({ status }) => {
+                document.getElementById('latitude').innerText = status.message;
+                document.getElementById('longitude').innerText = status.message;
+
+                document.getElementById('latitude_dms').textContent = status.message;
+                document.getElementById('longitude_dms').textContent = status.message;
+                // use timezone instead of longitude
+                const earthEmoji = getEarthEmojiByTimezone(currentDate);
+                document.getElementById('earth-emoji').innerText = earthEmoji;
+            });
+
+
+
+        };
+    </script>
+</body>
+
+</html>
