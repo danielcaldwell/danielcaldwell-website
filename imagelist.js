@@ -132,3 +132,5 @@ images[116] = new ImageInfo( 'QXYr1-SRpj', './images/2011-05-13_Calico-Camping-8
 images[117] = new ImageInfo( 'GJGAa9L59J', './images/2011-05-13_Calico-Camping-9.jpg', 'Calico Camping 9', '2011-05-13');
 images[118] = new ImageInfo( 'ruPw2FLQ08', './images/2011-05-13_Calico-Camping.jpg', 'Calico Camping', '2011-05-13');
 images[119] = new ImageInfo( 'kN3xQpWm7R', './images/San-Diego-Temple.jpg', 'San Diego Temple', '2011-09-18');
+images[120] = new ImageInfo( '362Ap4QfLQ', './images/2011-09-18_Angel-Moroni.jpg', 'Angel Moroni', '2011-09-18');
+images[121] = new ImageInfo( 'kqpS45gwZw', './images/2008-10-04_General-Conference.jpg', 'General Conference', '2008-10-04');
