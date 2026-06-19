@@ -1,5 +1,9 @@
 # danielcaldwell-website
 
+## Commits
+
+All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) format: `<type>[optional scope]: <description>`, e.g. `feat: add John Muir quote - The Mountains are calling...` or `fix(tools): anchor calculators to top of page`. Common types: `feat`, `fix`, `chore`, `docs`, `refactor`, `style`, `test`, `perf`, `build`, `ci`.
+
 ## JavaScript
 
 Use ES6+ syntax throughout: `class`, `const`/`let`, arrow functions, template literals. Avoid `var`, ES5 function constructors, and `new Array()`.
