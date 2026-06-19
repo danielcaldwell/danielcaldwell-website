@@ -254,3 +254,4 @@ quotes.push(new QuoteInfo( 'zhfTyY8VaC', "After a certain age, even men lose int
 quotes.push(new QuoteInfo( 'zrNJAn1gJV', "Savor the fruit of life, my young friends. It has a sweet taste when it is fresh from the vine, but don't live too long. The taste turns bitter ... after a time.", "Kor, The Dahar Master"));
 quotes.push(new QuoteInfo( 'unuReKF0Nv', "This is some bullshit!!!", "Harry Vanderspeigle"));
 quotes.push(new QuoteInfo( 'N6o7k6JF_W', "SonOfABitch!", "Harry Vanderspeigle"));
+quotes.push(new QuoteInfo( 'Tr4pPrn8Lq', "It's better to be pruned to grow than cut up to burn!!!", "John Trapp"));
