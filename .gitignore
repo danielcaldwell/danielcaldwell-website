@@ -2,3 +2,9 @@
 udc/*
 findingsunsets.com/*
 
+# macOS
+.DS_Store
+
+# temp files
+code-review-tasks.md
+
