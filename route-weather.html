@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Route Weather — Daniel Caldwell</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="site.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
+</head>
+
+<body>
+
+	<div class="container tool-container">
+		<nav class="breadcrumb"><a href="tools.html">← Tools</a></nav>
+
+		<h1 class="tool-title">Route Weather</h1>
+
+		<div class="tool-layout">
+
+			<div class="tool-panel" id="leftPanel">
+				<section class="tool-section">
+					<h2>Add a City</h2>
+					<div class="tool-field">
+						<input type="text" id="searchInput" class="rw-search-input"
+							placeholder="City, state — e.g. Las Vegas, NV" autocomplete="off">
+					</div>
+					<div class="rw-status" id="searchStatus" hidden></div>
+					<div class="rw-suggestions" id="suggestions"></div>
+				</section>
+
+				<section class="tool-section">
+					<h2>
+						Import a List
+						<button type="button" class="info-tooltip-btn" data-tooltip="import-info" aria-label="Import list info"><i class="fas fa-circle-info"></i></button>
+					</h2>
+					<div class="info-tooltip" id="import-info" hidden>
+						Paste cities one per line — e.g. <em>Salt Lake City, UT</em>. Each line is looked up and the best match is added to your route. Lines that can’t be matched are listed so you can fix them.
+					</div>
+					<textarea id="importInput" class="rw-import-input" rows="4" placeholder="San Bernardino, CA&#10;Las Vegas, NV&#10;St. George, UT"></textarea>
+					<button type="button" class="tool-add-row-btn" id="importBtn"><i class="fas fa-file-import"></i> Import cities</button>
+					<div class="rw-status" id="importStatus" hidden></div>
+				</section>
+
+				<section class="tool-section">
+					<h2>Your Route</h2>
+					<div class="rw-city-list" id="cityList"></div>
+					<p class="tool-caption" id="emptyRouteMsg">Search for cities to build your route. They’re saved on this device.</p>
+					<button type="button" class="tool-add-row-btn" id="checkAllBtn"><i class="fas fa-cloud-sun"></i> Check all weather</button>
+				</section>
+			</div>
+
+			<div class="tool-panel" id="rightPanel">
+				<section class="tool-section">
+					<h2>Weather &amp; 7‑Day Forecast</h2>
+					<div class="rw-weather" id="weather"></div>
+					<p class="rw-empty" id="weatherEmpty">Click a city to see its current conditions and 7‑day forecast.</p>
+				</section>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		const STORAGE_KEY = 'routeWeatherCities';
+
+		const STATE_ABBR = {
+			AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+			CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'District of Columbia',
+			FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois',
+			IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana',
+			ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota',
+			MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada',
+			NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York',
+			NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon',
+			PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota',
+			TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia',
+			WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming'
+		};
+
+		const FULL_TO_ABBR = Object.fromEntries(
+			Object.entries(STATE_ABBR).map(([abbr, full]) => [full.toLowerCase(), abbr])
+		);
+
+		const abbrFor = (admin1) => FULL_TO_ABBR[(admin1 || '').toLowerCase()] || admin1 || '';
+
+		const esc = (str) => String(str).replace(/[&<>"']/g, (ch) => (
+			{ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+		));
+
+		// ----- Query parsing: split "Las Vegas, NV" / "Las Vegas NV" into city + state -----
+		// ----- Geocoding via Photon (type-ahead, populated places only) -----
+		// Photon understands "City, ST" queries natively and does fuzzy/prefix
+		// matching, so partial names like "Malad" resolve to "Malad City". We keep
+		// only US populated places (osm_key=place) and drop counties, suburbs,
+		// districts, neighbourhoods, etc.
+		const PLACE_VALUES = new Set(['city', 'town', 'village', 'hamlet', 'municipality']);
+
+		const geocode = async (query, signal) => {
+			if (!query.trim()) return [];
+			const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=15&lang=en&osm_tag=place`;
+			const res = await fetch(url, { signal });
+			const data = await res.json();
+			const features = (data && data.features) || [];
+			const seen = new Set();
+			const results = [];
+			for (const f of features) {
+				const p = f.properties || {};
+				const coords = (f.geometry && f.geometry.coordinates) || [];
+				if (p.countrycode !== 'US' || !PLACE_VALUES.has(p.osm_value)) continue;
+				if (!p.name || coords.length < 2) continue;
+				const latitude = coords[1];
+				const longitude = coords[0];
+				const id = `${latitude},${longitude}`;
+				if (seen.has(id)) continue;
+				seen.add(id);
+				// Photon's county is sometimes "X County" and sometimes bare "X";
+				// normalise to bare so the UI can append " County" consistently.
+				const county = (p.county || '').replace(/\s+County$/i, '');
+				results.push({ name: p.name, admin1: p.state || '', admin2: county, latitude, longitude });
+			}
+			return results;
+		};
+
+		// ----- Weather via api.weather.gov -----
+		const fetchForecast = async (lat, lon) => {
+			const pointRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+			if (!pointRes.ok) throw new Error('points');
+			const point = await pointRes.json();
+			const forecastUrl = point.properties && point.properties.forecast;
+			if (!forecastUrl) throw new Error('no-forecast');
+			const fRes = await fetch(forecastUrl);
+			if (!fRes.ok) throw new Error('forecast');
+			const f = await fRes.json();
+			return f.properties.periods;
+		};
+
+		const weatherEmoji = (desc = '') => {
+			const d = desc.toLowerCase();
+			if (d.includes('thunder')) return '⛈️';
+			if (d.includes('snow') || d.includes('flurries') || d.includes('blizzard')) return '❄️';
+			if (d.includes('sleet') || d.includes('ice') || d.includes('freezing')) return '🧊';
+			if (d.includes('shower')) return '🌦️';
+			if (d.includes('rain') || d.includes('drizzle')) return '🌧️';
+			if (d.includes('fog') || d.includes('mist') || d.includes('haze')) return '🌫️';
+			if (d.includes('partly') || d.includes('mostly sunny') || d.includes('mostly clear')) return '⛅';
+			if (d.includes('cloud') || d.includes('overcast')) return '☁️';
+			if (d.includes('sunny') || d.includes('clear')) return '☀️';
+			if (d.includes('wind')) return '💨';
+			return '🌡️';
+		};
+
+		// ----- Persistence -----
+		const loadCities = () => {
+			try {
+				const raw = localStorage.getItem(STORAGE_KEY);
+				const parsed = raw ? JSON.parse(raw) : [];
+				return Array.isArray(parsed) ? parsed : [];
+			} catch (err) {
+				return [];
+			}
+		};
+
+		const saveCities = () => {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(cities));
+		};
+
+		// ----- State + elements -----
+		let cities = loadCities();
+		let selectedId = null;
+		let searchSeq = 0;
+		let searchTimer = null;
+		let searchController = null;
+
+		const searchInput = document.getElementById('searchInput');
+		const searchStatus = document.getElementById('searchStatus');
+		const suggestionsEl = document.getElementById('suggestions');
+		const importInput = document.getElementById('importInput');
+		const importBtn = document.getElementById('importBtn');
+		const importStatus = document.getElementById('importStatus');
+		const cityListEl = document.getElementById('cityList');
+		const emptyRouteMsg = document.getElementById('emptyRouteMsg');
+		const checkAllBtn = document.getElementById('checkAllBtn');
+		const weatherEl = document.getElementById('weather');
+		const weatherEmpty = document.getElementById('weatherEmpty');
+
+		// ----- Search UI -----
+		const setStatus = (html) => {
+			if (!html) {
+				searchStatus.hidden = true;
+				searchStatus.innerHTML = '';
+			} else {
+				searchStatus.hidden = false;
+				searchStatus.innerHTML = html;
+			}
+		};
+
+		const renderSuggestions = (results) => {
+			suggestionsEl.innerHTML = '';
+			results.forEach((r) => {
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'rw-suggestion';
+				const county = r.admin2 ? `${esc(r.admin2)} County` : '';
+				btn.innerHTML = `${esc(r.name)}, ${esc(abbrFor(r.admin1))}` +
+					(county ? `<span class="rw-suggestion-sub">${county}</span>` : '');
+				btn.addEventListener('click', () => addCity(r));
+				suggestionsEl.appendChild(btn);
+			});
+		};
+
+		const runSearch = async (value) => {
+			const seq = ++searchSeq;
+			if (searchController) searchController.abort();
+			searchController = new AbortController();
+			setStatus('<i class="fas fa-spinner fa-spin"></i> Searching…');
+			suggestionsEl.innerHTML = '';
+			try {
+				const results = await geocode(value, searchController.signal);
+				if (seq !== searchSeq) return; // a newer search superseded this one
+				if (results.length === 0) {
+					setStatus('No matching cities found.');
+				} else {
+					setStatus('');
+					renderSuggestions(results);
+				}
+			} catch (err) {
+				if (err.name === 'AbortError' || seq !== searchSeq) return;
+				setStatus('Search failed — check your connection and try again.');
+			}
+		};
+
+		searchInput.addEventListener('input', () => {
+			const value = searchInput.value.trim();
+			clearTimeout(searchTimer);
+			if (value.length < 2) {
+				searchSeq++;
+				if (searchController) searchController.abort();
+				setStatus('');
+				suggestionsEl.innerHTML = '';
+				return;
+			}
+			searchTimer = setTimeout(() => runSearch(value), 300);
+		});
+
+		// ----- Route list -----
+		const cityFromResult = (r) => ({
+			id: `${r.latitude},${r.longitude}`,
+			name: r.name,
+			state: abbrFor(r.admin1),
+			admin2: r.admin2 || '',
+			lat: r.latitude,
+			lon: r.longitude
+		});
+
+		const addCity = (r) => {
+			const city = cityFromResult(r);
+			if (!cities.some((c) => c.id === city.id)) {
+				cities.push(city);
+				saveCities();
+				renderCityList();
+			}
+			searchInput.value = '';
+			suggestionsEl.innerHTML = '';
+			setStatus('');
+			selectCity(city.id);
+		};
+
+		// ----- Bulk import (one city per line) -----
+		const setImportStatus = (html) => {
+			importStatus.hidden = !html;
+			importStatus.innerHTML = html || '';
+		};
+
+		const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+		const importCities = async () => {
+			const lines = importInput.value.split('\n').map((s) => s.trim()).filter(Boolean);
+			if (lines.length === 0) return;
+			importBtn.disabled = true;
+			let added = 0;
+			const failed = [];
+			for (let i = 0; i < lines.length; i++) {
+				setImportStatus(`<i class="fas fa-spinner fa-spin"></i> Importing ${i + 1} of ${lines.length}…`);
+				try {
+					const results = await geocode(lines[i]);
+					if (results.length === 0) {
+						failed.push(lines[i]);
+					} else {
+						const city = cityFromResult(results[0]);
+						if (!cities.some((c) => c.id === city.id)) {
+							cities.push(city);
+							added++;
+						}
+					}
+				} catch (err) {
+					failed.push(lines[i]);
+				}
+				if (i < lines.length - 1) await sleep(300); // be polite to the public Photon instance
+			}
+			saveCities();
+			renderCityList();
+			importInput.value = '';
+			importBtn.disabled = false;
+			let msg = `Added ${added} cit${added === 1 ? 'y' : 'ies'}.`;
+			if (failed.length) msg += ` Couldn’t match: ${failed.map(esc).join(', ')}.`;
+			setImportStatus(msg);
+		};
+
+		const removeCity = (id) => {
+			cities = cities.filter((c) => c.id !== id);
+			saveCities();
+			renderCityList();
+			if (selectedId === id) {
+				selectedId = null;
+				weatherEl.innerHTML = '';
+				weatherEmpty.hidden = false;
+			}
+		};
+
+		const renderCityList = () => {
+			cityListEl.innerHTML = '';
+			emptyRouteMsg.hidden = cities.length > 0;
+			checkAllBtn.hidden = cities.length === 0;
+			cities.forEach((city) => {
+				const row = document.createElement('div');
+				row.className = 'rw-city';
+
+				const nameBtn = document.createElement('button');
+				nameBtn.type = 'button';
+				nameBtn.className = 'rw-city-name' + (city.id === selectedId ? ' active' : '');
+				nameBtn.textContent = `${city.name}, ${city.state}`;
+				nameBtn.addEventListener('click', () => selectCity(city.id));
+
+				const removeBtn = document.createElement('button');
+				removeBtn.type = 'button';
+				removeBtn.className = 'tool-remove-row-btn';
+				removeBtn.setAttribute('aria-label', `Remove ${city.name}`);
+				removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
+				removeBtn.addEventListener('click', () => removeCity(city.id));
+
+				row.appendChild(nameBtn);
+				row.appendChild(removeBtn);
+				cityListEl.appendChild(row);
+			});
+		};
+
+		// ----- Weather rendering -----
+		// weather.gov returns alternating day/night periods; group them by calendar
+		// day so each day's daytime high and nighttime low read together.
+		const groupByDay = (periods) => {
+			const days = new Map();
+			periods.forEach((p) => {
+				const date = p.startTime.slice(0, 10); // YYYY-MM-DD
+				if (!days.has(date)) days.set(date, { date, day: null, night: null });
+				const entry = days.get(date);
+				if (p.isDaytime) entry.day = p; else entry.night = p;
+			});
+			return [...days.values()];
+		};
+
+		// Format a YYYY-MM-DD string without timezone drift from Date parsing.
+		const fmtDate = (iso) => {
+			const [y, m, d] = iso.split('-').map(Number);
+			return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+				weekday: 'short', month: 'short', day: 'numeric'
+			});
+		};
+
+		const partHtml = (period, label, extraClass) => {
+			if (!period) return '';
+			return `
+				<div class="rw-day-part ${extraClass}">
+					<span class="rw-part-label">${label}</span>
+					<span class="rw-period-temp">${weatherEmoji(period.shortForecast)} ${period.temperature}°${esc(period.temperatureUnit)}</span>
+					<span class="rw-period-desc">${esc(period.shortForecast)}</span>
+				</div>`;
+		};
+
+		const renderCardBody = (card, city, periods) => {
+			const current = periods[0];
+			const daysHtml = groupByDay(periods).map((d) => `
+				<div class="rw-day">
+					<div class="rw-day-label">${esc(fmtDate(d.date))}</div>
+					<div class="rw-day-parts">
+						${partHtml(d.day, 'Day', '')}
+						${partHtml(d.night, 'Night', 'rw-night-part')}
+					</div>
+				</div>`).join('');
+
+			card.innerHTML = `
+				<div class="rw-weather-head">
+					<span class="rw-weather-title">${esc(city.name)}, ${esc(city.state)}</span>
+				</div>
+				<div class="rw-current">
+					<span class="rw-current-emoji">${weatherEmoji(current.shortForecast)}</span>
+					<div>
+						<div class="rw-current-temp">${current.temperature}°${esc(current.temperatureUnit)}</div>
+						<div class="rw-current-desc">${esc(current.name)} — ${esc(current.shortForecast)}</div>
+					</div>
+				</div>
+				<div class="rw-days">${daysHtml}</div>`;
+		};
+
+		const buildCard = (city) => {
+			const card = document.createElement('div');
+			card.className = 'rw-weather-card';
+			card.id = `rw-card-${city.id}`;
+			card.innerHTML = `
+				<div class="rw-weather-head">
+					<span class="rw-weather-title">${esc(city.name)}, ${esc(city.state)}</span>
+					<span class="rw-status"><i class="fas fa-spinner fa-spin"></i> Loading…</span>
+				</div>`;
+			fetchForecast(city.lat, city.lon)
+				.then((periods) => renderCardBody(card, city, periods))
+				.catch(() => {
+					card.innerHTML = `
+						<div class="rw-weather-head">
+							<span class="rw-weather-title">${esc(city.name)}, ${esc(city.state)}</span>
+						</div>
+						<div class="tool-error">Weather unavailable (US locations only).</div>`;
+				});
+			return card;
+		};
+
+		const selectCity = (id) => {
+			const city = cities.find((c) => c.id === id);
+			if (!city) return;
+			selectedId = id;
+			renderCityList();
+			weatherEmpty.hidden = true;
+			weatherEl.innerHTML = '';
+			weatherEl.appendChild(buildCard(city));
+		};
+
+		const checkAll = () => {
+			if (cities.length === 0) return;
+			selectedId = null;
+			renderCityList();
+			weatherEmpty.hidden = true;
+			weatherEl.innerHTML = '';
+			cities.forEach((city) => weatherEl.appendChild(buildCard(city)));
+		};
+
+		checkAllBtn.addEventListener('click', checkAll);
+		importBtn.addEventListener('click', importCities);
+
+		// Info tooltips
+		document.querySelectorAll('.info-tooltip-btn').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const tooltip = document.getElementById(btn.dataset.tooltip);
+				const isHidden = tooltip.hidden;
+				tooltip.hidden = !isHidden;
+				btn.classList.toggle('active', isHidden);
+			});
+		});
+
+		// ----- Init -----
+		renderCityList();
+	</script>
+
+</body>
+
+</html>
