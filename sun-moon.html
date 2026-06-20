@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Sun &amp; Moon — Daniel Caldwell</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="site.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
+</head>
+
+<body>
+
+	<div class="container tool-container">
+		<nav class="breadcrumb"><a href="tools.html">← Tools</a></nav>
+
+		<h1 class="tool-title">Sun &amp; Moon</h1>
+
+		<div class="tool-layout">
+
+			<div class="tool-panel" id="leftPanel">
+				<section class="tool-section">
+					<h2>Location &amp; Date</h2>
+					<div class="sm-controls">
+						<button type="button" class="tool-add-row-btn" id="geoBtn"><i class="fas fa-location-crosshairs"></i> Use my location</button>
+					</div>
+					<div class="tool-field">
+						<input type="text" id="searchInput" class="rw-search-input" placeholder="…or search a city — e.g. Boise, ID" autocomplete="off">
+					</div>
+					<div class="rw-status" id="searchStatus" hidden></div>
+					<div class="rw-suggestions" id="suggestions"></div>
+					<div class="sm-loc-label" id="locLabel">No location set yet.</div>
+					<div class="sm-date-control">
+						<button type="button" class="tool-preset-btn" id="prevDay" aria-label="Previous day">◀</button>
+						<button type="button" class="tool-preset-btn" id="todayBtn">Today</button>
+						<button type="button" class="tool-preset-btn" id="nextDay" aria-label="Next day">▶</button>
+						<span class="sm-date-label" id="dateLabel"></span>
+					</div>
+					<p class="tool-caption">Times shown in your device’s timezone.</p>
+				</section>
+
+				<div id="factSections" hidden>
+					<section class="tool-section">
+						<h2>Sun</h2>
+						<div class="tool-breakdown" id="sunFacts"></div>
+					</section>
+
+					<section class="tool-section">
+						<h2>Twilight</h2>
+						<div class="tool-breakdown" id="twilightFacts"></div>
+					</section>
+
+					<section class="tool-section">
+						<h2>Moon</h2>
+						<div class="tool-breakdown" id="moonFacts"></div>
+					</section>
+
+					<section class="tool-section">
+						<h2>Seasons</h2>
+						<div class="tool-breakdown" id="seasonFacts"></div>
+					</section>
+
+					<section class="tool-section">
+						<h2>Night Darkness</h2>
+						<div id="darknessBox"></div>
+					</section>
+				</div>
+			</div>
+
+			<div class="tool-panel" id="rightPanel">
+				<div class="sm-empty" id="rightEmpty">Set a location to see charts and the stargazing outlook.</div>
+				<div id="chartSections" hidden>
+					<section class="tool-section">
+						<h2>Day &amp; Night</h2>
+						<div class="sm-chart" id="twilightChart"></div>
+						<div class="sm-legend" id="twilightLegend"></div>
+					</section>
+
+					<section class="tool-section">
+						<h2>Sun &amp; Moon Altitude</h2>
+						<div class="sm-chart" id="altChart"></div>
+						<div class="sm-legend" id="altLegend"></div>
+					</section>
+
+					<section class="tool-section">
+						<h2>Darkest Nights Ahead</h2>
+						<div class="sm-outlook" id="outlook"></div>
+					</section>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		const STORAGE_KEY = 'sunMoonLocation';
+		const DEG = 180 / Math.PI;
+
+		// ---------- Generic helpers (shared with Route Weather) ----------
+		const STATE_ABBR = {
+			AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+			CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'District of Columbia',
+			FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois',
+			IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana',
+			ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota',
+			MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada',
+			NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York',
+			NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon',
+			PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota',
+			TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia',
+			WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming'
+		};
+		const FULL_TO_ABBR = Object.fromEntries(
+			Object.entries(STATE_ABBR).map(([abbr, full]) => [full.toLowerCase(), abbr])
+		);
+		const abbrFor = (admin1) => FULL_TO_ABBR[(admin1 || '').toLowerCase()] || admin1 || '';
+
+		const esc = (str) => String(str).replace(/[&<>"']/g, (ch) => (
+			{ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+		));
+
+		// ---------- Geocoding via Photon (forward + reverse) ----------
+		const PLACE_VALUES = new Set(['city', 'town', 'village', 'hamlet', 'municipality']);
+
+		const geocode = async (query, signal) => {
+			if (!query.trim()) return [];
+			const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=15&lang=en&osm_tag=place`;
+			const res = await fetch(url, { signal });
+			const data = await res.json();
+			const features = (data && data.features) || [];
+			const seen = new Set();
+			const results = [];
+			for (const f of features) {
+				const p = f.properties || {};
+				const coords = (f.geometry && f.geometry.coordinates) || [];
+				if (p.countrycode !== 'US' || !PLACE_VALUES.has(p.osm_value)) continue;
+				if (!p.name || coords.length < 2) continue;
+				const id = `${coords[1]},${coords[0]}`;
+				if (seen.has(id)) continue;
+				seen.add(id);
+				results.push({ name: p.name, admin1: p.state || '', latitude: coords[1], longitude: coords[0] });
+			}
+			return results;
+		};
+
+		const reverseGeocode = async (lat, lon) => {
+			try {
+				const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1`);
+				const data = await res.json();
+				const p = data && data.features && data.features[0] && data.features[0].properties;
+				if (!p) return '';
+				const place = p.name || p.city || p.county || '';
+				const region = p.countrycode === 'US' ? abbrFor(p.state) : (p.state || p.country || '');
+				return [place, region].filter(Boolean).join(', ');
+			} catch (err) {
+				return '';
+			}
+		};
+
+		const getBrowserLocation = () => new Promise((resolve, reject) => {
+			if (!navigator.geolocation) { reject(new Error('Geolocation not supported')); return; }
+			navigator.geolocation.getCurrentPosition(
+				(pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+				(err) => reject(err),
+				{ enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
+			);
+		});
+
+		// ---------- Formatting ----------
+		const isValid = (d) => d instanceof Date && !isNaN(d);
+		const fmtTime = (d) => isValid(d) ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '—';
+		const fmtDateLong = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+		const fmtDateShort = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+		const fmtHM = (ms) => {
+			if (!(ms > 0)) return '—';
+			const mins = Math.round(ms / 60000);
+			const h = Math.floor(mins / 60);
+			const m = mins % 60;
+			return `${h}h ${String(m).padStart(2, '0')}m`;
+		};
+
+		const fmtSignedHMS = (sec) => {
+			const sign = sec >= 0 ? '+' : '−';
+			let s = Math.abs(Math.round(sec));
+			const h = Math.floor(s / 3600); s -= h * 3600;
+			const m = Math.floor(s / 60); s -= m * 60;
+			const parts = [];
+			if (h) parts.push(`${h}h`);
+			parts.push(`${m}m`);
+			parts.push(`${s}s`);
+			return `${sign}${parts.join(' ')}`;
+		};
+
+		// ---------- Moon phase naming ----------
+		const MOON_EMOJI = {
+			'New Moon': '🌑', 'Waxing Crescent': '🌒', 'First Quarter': '🌓', 'Waxing Gibbous': '🌔',
+			'Full Moon': '🌕', 'Waning Gibbous': '🌖', 'Last Quarter': '🌗', 'Waning Crescent': '🌘'
+		};
+		// Moon rise/set bounding the day; if one falls after midnight, borrow the
+		// next day's event so we always show the upcoming time instead of "—".
+		const moonTimesAround = (date, lat, lon) => {
+			const t0 = SunCalc.getMoonTimes(date, lat, lon);
+			let rise = t0.rise, set = t0.set;
+			if (!isValid(rise) || !isValid(set)) {
+				const next = SunCalc.getMoonTimes(new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1), lat, lon);
+				if (!isValid(rise)) rise = next.rise;
+				if (!isValid(set)) set = next.set;
+			}
+			return { rise, set };
+		};
+
+		const moonPhaseName = (phase) => {
+			if (phase < 0.025 || phase > 0.975) return 'New Moon';
+			if (phase < 0.225) return 'Waxing Crescent';
+			if (phase < 0.275) return 'First Quarter';
+			if (phase < 0.475) return 'Waxing Gibbous';
+			if (phase < 0.525) return 'Full Moon';
+			if (phase < 0.725) return 'Waning Gibbous';
+			if (phase < 0.775) return 'Last Quarter';
+			return 'Waning Crescent';
+		};
+
+		// ---------- Equinox / solstice (Meeus, Astronomical Algorithms ch. 27) ----------
+		const MEEUS_TERMS = [
+			[485, 324.96, 1934.136], [203, 337.23, 32964.467], [199, 342.08, 20.186],
+			[182, 27.85, 445267.112], [156, 73.14, 45036.886], [136, 171.52, 22518.443],
+			[77, 222.54, 65928.934], [74, 296.72, 3034.906], [70, 243.58, 9037.513],
+			[58, 119.81, 33718.147], [52, 297.17, 150.678], [50, 21.02, 2281.226],
+			[45, 247.54, 29929.562], [44, 325.15, 31555.956], [29, 60.93, 4443.417],
+			[18, 155.12, 67555.328], [17, 288.79, 4562.452], [16, 198.04, 62894.029],
+			[14, 199.76, 31436.921], [12, 95.39, 14577.848], [12, 287.11, 31931.756],
+			[12, 320.81, 34777.259], [9, 227.73, 1222.114], [8, 15.45, 16859.074]
+		];
+		const jdToDate = (jd) => new Date((jd - 2440587.5) * 86400000);
+
+		// k: 0=Mar equinox, 1=Jun solstice, 2=Sep equinox, 3=Dec solstice
+		const meeusEvent = (year, k) => {
+			const Y = (year - 2000) / 1000;
+			const base = [
+				[2451623.80984, 365242.37404, 0.05169, -0.00411, -0.00057],
+				[2451716.56767, 365241.62603, 0.00325, 0.00888, -0.00030],
+				[2451810.21715, 365242.01767, -0.11575, 0.00337, 0.00078],
+				[2451900.05952, 365242.74049, -0.06223, -0.00823, 0.00032]
+			][k];
+			const JDE0 = base[0] + base[1] * Y + base[2] * Y * Y + base[3] * Y ** 3 + base[4] * Y ** 4;
+			const T = (JDE0 - 2451545.0) / 36525;
+			const W = (35999.373 * T - 2.47) / DEG;
+			const dL = 1 + 0.0334 * Math.cos(W) + 0.0007 * Math.cos(2 * W);
+			let S = 0;
+			for (const [A, B, C] of MEEUS_TERMS) S += A * Math.cos((B + C * T) / DEG);
+			return jdToDate(JDE0 + (0.00001 * S) / dL);
+		};
+
+		// All equinoxes/solstices across year-1..year+1, sorted.
+		const seasonEvents = (now) => {
+			const yr = now.getFullYear();
+			const names = ['March Equinox', 'June Solstice', 'September Equinox', 'December Solstice'];
+			const kinds = ['equinox', 'solstice', 'equinox', 'solstice'];
+			const events = [];
+			for (let y = yr - 1; y <= yr + 1; y++) {
+				for (let k = 0; k < 4; k++) {
+					events.push({ date: meeusEvent(y, k), kind: kinds[k], k, baseName: names[k] });
+				}
+			}
+			events.sort((a, b) => a.date - b.date);
+			return events;
+		};
+
+		// Hemisphere-aware season name.
+		const seasonName = (k, lat) => {
+			const north = lat >= 0;
+			const map = north
+				? { 0: 'Spring Equinox', 1: 'Summer Solstice', 2: 'Autumn Equinox', 3: 'Winter Solstice' }
+				: { 0: 'Autumn Equinox', 1: 'Winter Solstice', 2: 'Spring Equinox', 3: 'Summer Solstice' };
+			return map[k];
+		};
+
+		// ---------- Twilight band classification ----------
+		const BANDS = {
+			day: { color: '#7ec8f0', label: 'Day' },
+			civil: { color: '#3f6fa3', label: 'Civil twilight' },
+			nautical: { color: '#274a73', label: 'Nautical twilight' },
+			astro: { color: '#16284a', label: 'Astronomical twilight' },
+			night: { color: '#0a1024', label: 'Night' }
+		};
+		const classifySun = (alt) =>
+			alt > -0.833 ? 'day' : alt > -6 ? 'civil' : alt > -12 ? 'nautical' : alt > -18 ? 'astro' : 'night';
+
+		// Merge contiguous same-class minutes across the local day into segments.
+		const sunSegments = (midnight, lat, lon, step = 2) => {
+			const segs = [];
+			let prev = null, start = 0;
+			for (let m = 0; m <= 1440; m += step) {
+				const alt = SunCalc.getPosition(new Date(midnight.getTime() + m * 60000), lat, lon).altitude * DEG;
+				const cls = classifySun(alt);
+				if (cls !== prev) {
+					if (prev !== null) segs.push({ cls: prev, start, end: m });
+					prev = cls; start = m;
+				}
+			}
+			segs.push({ cls: prev, start, end: 1440 });
+			return segs;
+		};
+
+		const altSamples = (posFn, midnight, lat, lon, step = 8) => {
+			const pts = [];
+			for (let m = 0; m <= 1440; m += step) {
+				pts.push([m, posFn(new Date(midnight.getTime() + m * 60000), lat, lon).altitude * DEG]);
+			}
+			return pts;
+		};
+
+		// ---------- SVG chart builders ----------
+		const hourLabel = (h) => (h % 24 === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`);
+
+		const buildTwilightBar = (segments) => {
+			const W = 960, H = 30;
+			const rects = segments.map((s) => {
+				const x = (s.start / 1440) * W;
+				const w = ((s.end - s.start) / 1440) * W;
+				return `<rect x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${H}" fill="${BANDS[s.cls].color}"/>`;
+			}).join('');
+			let ticks = '';
+			for (let h = 0; h <= 24; h += 6) {
+				const x = (h / 24) * W;
+				ticks += `<line x1="${x}" y1="${H}" x2="${x}" y2="${H + 4}" stroke="currentColor" opacity="0.5"/>`
+					+ `<text x="${x}" y="${H + 15}" font-size="11" fill="currentColor" text-anchor="middle" opacity="0.7">${hourLabel(h)}</text>`;
+			}
+			return `<svg viewBox="0 0 ${W} ${H + 20}" class="sm-svg" role="img" aria-label="Day, twilight and night across the day">${rects}${ticks}</svg>`;
+		};
+
+		const buildAltChart = (sunPts, moonPts, segments) => {
+			const W = 960, H = 300, mL = 34, mR = 10, mT = 8, mB = 22;
+			const pw = W - mL - mR, ph = H - mT - mB;
+			const X = (m) => mL + (m / 1440) * pw;
+			const Y = (a) => mT + (1 - (Math.max(-90, Math.min(90, a)) + 90) / 180) * ph;
+
+			const bands = segments.map((s) =>
+				`<rect x="${X(s.start).toFixed(1)}" y="${mT}" width="${(X(s.end) - X(s.start)).toFixed(1)}" height="${ph}" fill="${BANDS[s.cls].color}" opacity="0.6"/>`
+			).join('');
+
+			const gridY = [60, 30, -30, -60].map((a) =>
+				`<line x1="${mL}" y1="${Y(a).toFixed(1)}" x2="${W - mR}" y2="${Y(a).toFixed(1)}" stroke="currentColor" stroke-opacity="0.12"/>`
+			).join('');
+			const horizon = `<line x1="${mL}" y1="${Y(0).toFixed(1)}" x2="${W - mR}" y2="${Y(0).toFixed(1)}" stroke="#ffffff" stroke-opacity="0.7" stroke-dasharray="5 3"/>`
+				+ `<text x="${mL - 4}" y="${(Y(0) + 4).toFixed(1)}" font-size="11" fill="currentColor" text-anchor="end" opacity="0.7">0°</text>`;
+
+			const line = (pts, color, w, dash) => {
+				const d = pts.map(([m, a]) => `${X(m).toFixed(1)},${Y(a).toFixed(1)}`).join(' ');
+				return `<polyline points="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linejoin="round"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
+			};
+
+			let xticks = '';
+			for (let h = 0; h <= 24; h += 6) {
+				const x = X(h * 60);
+				xticks += `<text x="${x.toFixed(1)}" y="${H - 6}" font-size="11" fill="currentColor" text-anchor="middle" opacity="0.7">${hourLabel(h)}</text>`;
+			}
+
+			return `<svg viewBox="0 0 ${W} ${H}" class="sm-svg" role="img" aria-label="Sun and moon altitude over the day">`
+				+ bands + gridY + horizon
+				+ line(moonPts, '#dfe3ea', 1.8, '4 3')
+				+ line(sunPts, '#ffd24a', 2.6)
+				+ xticks + `</svg>`;
+		};
+
+		// ---------- Night darkness scoring ----------
+		const scoreLabel = (s) => s >= 90 ? 'Excellent' : s >= 75 ? 'Good' : s >= 55 ? 'Fair' : s >= 35 ? 'Poor' : 'Bright';
+		const scoreStars = (s) => {
+			const n = s >= 90 ? 5 : s >= 75 ? 4 : s >= 55 ? 3 : s >= 35 ? 2 : 1;
+			return '★'.repeat(n) + '☆'.repeat(5 - n);
+		};
+
+		// Quality of the night following `date` (a local-midnight Date).
+		const scoreNight = (date, lat, lon) => {
+			const y = date.getFullYear(), mo = date.getMonth(), d = date.getDate();
+			const tEve = SunCalc.getTimes(new Date(y, mo, d, 12), lat, lon);
+			const tMorn = SunCalc.getTimes(new Date(y, mo, d + 1, 12), lat, lon);
+			let start = tEve.night, end = tMorn.nightEnd;
+			let trueDark = isValid(start) && isValid(end) && end > start;
+			if (!trueDark) {
+				const nadir = isValid(tEve.nadir) ? tEve.nadir : new Date(y, mo, d + 1, 0);
+				start = new Date(nadir.getTime() - 3 * 3600000);
+				end = new Date(nadir.getTime() + 3 * 3600000);
+			}
+			let up = 0, total = 0;
+			for (let t = start.getTime(); t <= end.getTime(); t += 5 * 60000) {
+				total++;
+				if (SunCalc.getMoonPosition(new Date(t), lat, lon).altitude > 0) up++;
+			}
+			const moonUpFrac = total ? up / total : 0;
+			const illum = SunCalc.getMoonIllumination(new Date((start.getTime() + end.getTime()) / 2)).fraction;
+			let score = Math.round(100 * (1 - illum * moonUpFrac));
+			if (!trueDark) score = Math.min(score, 45);
+			return { score, illum, moonUpFrac, trueDark, start, end };
+		};
+
+		// ---------- State ----------
+		let loc = null;            // { lat, lon, label }
+		let selDate = startOfDay(new Date());
+		let searchSeq = 0, searchTimer = null, searchController = null;
+
+		function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+		const el = (id) => document.getElementById(id);
+
+		// ---------- Search UI ----------
+		const setStatus = (html) => { el('searchStatus').hidden = !html; el('searchStatus').innerHTML = html || ''; };
+
+		const renderSuggestions = (results) => {
+			const box = el('suggestions');
+			box.innerHTML = '';
+			results.forEach((r) => {
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'rw-suggestion';
+				btn.textContent = `${r.name}, ${abbrFor(r.admin1)}`;
+				btn.addEventListener('click', () => {
+					setLocation({ lat: r.latitude, lon: r.longitude, label: `${r.name}, ${abbrFor(r.admin1)}` });
+					el('searchInput').value = '';
+					box.innerHTML = '';
+					setStatus('');
+				});
+				box.appendChild(btn);
+			});
+		};
+
+		const runSearch = async (value) => {
+			const seq = ++searchSeq;
+			if (searchController) searchController.abort();
+			searchController = new AbortController();
+			setStatus('<i class="fas fa-spinner fa-spin"></i> Searching…');
+			el('suggestions').innerHTML = '';
+			try {
+				const results = await geocode(value, searchController.signal);
+				if (seq !== searchSeq) return;
+				if (results.length === 0) setStatus('No matching cities found.');
+				else { setStatus(''); renderSuggestions(results); }
+			} catch (err) {
+				if (err.name === 'AbortError' || seq !== searchSeq) return;
+				setStatus('Search failed — check your connection.');
+			}
+		};
+
+		el('searchInput').addEventListener('input', () => {
+			const value = el('searchInput').value.trim();
+			clearTimeout(searchTimer);
+			if (value.length < 2) { searchSeq++; if (searchController) searchController.abort(); setStatus(''); el('suggestions').innerHTML = ''; return; }
+			searchTimer = setTimeout(() => runSearch(value), 300);
+		});
+
+		el('geoBtn').addEventListener('click', async () => {
+			el('geoBtn').disabled = true;
+			el('locLabel').textContent = 'Locating…';
+			try {
+				const { lat, lon } = await getBrowserLocation();
+				const label = (await reverseGeocode(lat, lon)) || 'My location';
+				setLocation({ lat, lon, label });
+			} catch (err) {
+				el('locLabel').textContent = 'Location unavailable — search for a city instead.';
+			} finally {
+				el('geoBtn').disabled = false;
+			}
+		});
+
+		// ---------- Date controls ----------
+		el('prevDay').addEventListener('click', () => { selDate = new Date(selDate.getFullYear(), selDate.getMonth(), selDate.getDate() - 1); render(); });
+		el('nextDay').addEventListener('click', () => { selDate = new Date(selDate.getFullYear(), selDate.getMonth(), selDate.getDate() + 1); render(); });
+		el('todayBtn').addEventListener('click', () => { selDate = startOfDay(new Date()); render(); });
+
+		// ---------- Location plumbing ----------
+		const setLocation = (next) => {
+			loc = next;
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
+			render();
+		};
+
+		const loadLocation = () => {
+			try {
+				const raw = localStorage.getItem(STORAGE_KEY);
+				if (raw) { const p = JSON.parse(raw); if (p && typeof p.lat === 'number') return p; }
+			} catch (err) { /* ignore */ }
+			return null;
+		};
+
+		// ---------- Rendering ----------
+		const rows = (pairs) => pairs.map(([label, value]) =>
+			`<div class="tool-breakdown-row"><span>${esc(label)}</span><span>${value}</span></div>`).join('');
+
+		const render = () => {
+			el('dateLabel').textContent = fmtDateLong(selDate);
+			if (!loc) {
+				el('factSections').hidden = true;
+				el('chartSections').hidden = true;
+				el('rightEmpty').hidden = false;
+				return;
+			}
+			el('factSections').hidden = false;
+			el('chartSections').hidden = false;
+			el('rightEmpty').hidden = true;
+
+			const { lat, lon } = loc;
+			const y = selDate.getFullYear(), mo = selDate.getMonth(), d = selDate.getDate();
+			const midnight = new Date(y, mo, d);
+			const noon = new Date(y, mo, d, 12);
+			const t = SunCalc.getTimes(noon, lat, lon);
+
+			el('locLabel').innerHTML = `<strong>${esc(loc.label)}</strong> · ${lat.toFixed(3)}, ${lon.toFixed(3)}`;
+
+			// --- Sun facts ---
+			const dayMs = (isValid(t.sunrise) && isValid(t.sunset)) ? (t.sunset - t.sunrise) : 0;
+			const prevT = SunCalc.getTimes(new Date(y, mo, d - 1, 12), lat, lon);
+			const prevMs = (isValid(prevT.sunrise) && isValid(prevT.sunset)) ? (prevT.sunset - prevT.sunrise) : 0;
+			const deltaSec = (dayMs && prevMs) ? (dayMs - prevMs) / 1000 : 0;
+			const trend = deltaSec === 0 ? '' : ` <span class="sm-muted">(${deltaSec > 0 ? 'gaining' : 'losing'})</span>`;
+			el('sunFacts').innerHTML = rows([
+				['Sunrise', `🌅 ${fmtTime(t.sunrise)}`],
+				['Solar noon', `☀️ ${fmtTime(t.solarNoon)}`],
+				['Sunset', `🌇 ${fmtTime(t.sunset)}`],
+				['Day length', fmtHM(dayMs)],
+				['Vs. yesterday', `${fmtSignedHMS(deltaSec)}${trend}`]
+			]);
+
+			// --- Twilight facts ---
+			el('twilightFacts').innerHTML = rows([
+				['Civil dawn / dusk', `${fmtTime(t.dawn)} · ${fmtTime(t.dusk)}`],
+				['Nautical dawn / dusk', `${fmtTime(t.nauticalDawn)} · ${fmtTime(t.nauticalDusk)}`],
+				['Astronomical dawn / dusk', `${fmtTime(t.nightEnd)} · ${fmtTime(t.night)}`]
+			]);
+
+			// --- Moon facts ---
+			const illum = SunCalc.getMoonIllumination(noon);
+			const phaseName = moonPhaseName(illum.phase);
+			const mt = moonTimesAround(midnight, lat, lon);
+			el('moonFacts').innerHTML = rows([
+				['Phase', `${MOON_EMOJI[phaseName]} ${phaseName}`],
+				['Illumination', `${Math.round(illum.fraction * 100)}%`],
+				['Moonrise', `${fmtTime(mt.rise)}`],
+				['Moonset', `${fmtTime(mt.set)}`]
+			]);
+
+			// --- Seasons ---
+			const events = seasonEvents(selDate);
+			const lastEquinox = [...events].reverse().find((e) => e.kind === 'equinox' && e.date <= selDate);
+			const nextEquinox = events.find((e) => e.kind === 'equinox' && e.date > selDate);
+			const nextSolstice = events.find((e) => e.kind === 'solstice' && e.date > selDate);
+			const lastSolstice = [...events].reverse().find((e) => e.kind === 'solstice' && e.date <= selDate);
+			const daysBetween = (a, b) => Math.round((startOfDay(b) - startOfDay(a)) / 86400000);
+			const seasonRows = [];
+			if (lastEquinox) seasonRows.push([`Since ${seasonName(lastEquinox.k, lat)}`, `${daysBetween(lastEquinox.date, selDate)} days`]);
+			if (nextEquinox) seasonRows.push([`Until ${seasonName(nextEquinox.k, lat)}`, `${daysBetween(selDate, nextEquinox.date)} days (${fmtDateShort(nextEquinox.date)})`]);
+			if (nextSolstice) seasonRows.push([`Until ${seasonName(nextSolstice.k, lat)}`, `${daysBetween(selDate, nextSolstice.date)} days (${fmtDateShort(nextSolstice.date)})`]);
+			if (lastSolstice && dayMs) {
+				const solMidday = new Date(lastSolstice.date.getFullYear(), lastSolstice.date.getMonth(), lastSolstice.date.getDate(), 12);
+				const solT = SunCalc.getTimes(solMidday, lat, lon);
+				if (isValid(solT.sunrise) && isValid(solT.sunset)) {
+					const cumSec = (dayMs - (solT.sunset - solT.sunrise)) / 1000;
+					seasonRows.push([`Since ${seasonName(lastSolstice.k, lat)}`, `${fmtSignedHMS(cumSec)} of daylight`]);
+				}
+			}
+			el('seasonFacts').innerHTML = rows(seasonRows);
+
+			// --- Night darkness (selected night) ---
+			const ns = scoreNight(midnight, lat, lon);
+			const driver = ns.moonUpFrac < 0.02
+				? 'Moon stays below the horizon all night.'
+				: ns.moonUpFrac > 0.98
+					? `Moon up most of the night (${Math.round(ns.illum * 100)}% lit).`
+					: `Moon up part of the night (${Math.round(ns.illum * 100)}% lit).`;
+			const darkNote = ns.trueDark ? '' : ' <span class="sm-muted">No full astronomical darkness this night.</span>';
+			el('darknessBox').innerHTML =
+				`<div class="sm-score">
+					<span class="sm-stars">${scoreStars(ns.score)}</span>
+					<span class="sm-score-num">${ns.score}<span class="sm-muted">/100</span></span>
+					<span class="sm-score-label">${scoreLabel(ns.score)}</span>
+				</div>
+				<p class="sm-score-drivers">${driver}${darkNote}</p>`;
+
+			// --- Charts ---
+			const segments = sunSegments(midnight, lat, lon);
+			el('twilightChart').innerHTML = buildTwilightBar(segments);
+			el('twilightLegend').innerHTML = Object.values(BANDS).map((b) =>
+				`<span class="sm-legend-item"><span class="sm-swatch" style="background:${b.color}"></span>${b.label}</span>`).join('');
+
+			const sunPts = altSamples((dt, la, lo) => SunCalc.getPosition(dt, la, lo), midnight, lat, lon);
+			const moonPts = altSamples((dt, la, lo) => SunCalc.getMoonPosition(dt, la, lo), midnight, lat, lon);
+			el('altChart').innerHTML = buildAltChart(sunPts, moonPts, segments);
+			el('altLegend').innerHTML =
+				`<span class="sm-legend-item"><span class="sm-line" style="background:#ffd24a"></span>Sun</span>`
+				+ `<span class="sm-legend-item"><span class="sm-line sm-line-dash" style="background:#9aa3b2"></span>Moon</span>`;
+
+			// --- Darkest nights outlook (next 14 nights from real today) ---
+			const today = startOfDay(new Date());
+			const nights = [];
+			for (let i = 0; i < 14; i++) {
+				const nd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+				const s = scoreNight(nd, lat, lon);
+				const ill = SunCalc.getMoonIllumination(new Date(nd.getFullYear(), nd.getMonth(), nd.getDate(), 23));
+				nights.push({ date: nd, i, score: s.score, illum: ill.fraction, phase: moonPhaseName(ill.phase) });
+			}
+			nights.sort((a, b) => b.score - a.score);
+			el('outlook').innerHTML = nights.slice(0, 5).map((n) =>
+				`<div class="sm-outlook-row">
+					<span class="sm-outlook-date">${n.i === 0 ? 'Tonight' : esc(fmtDateShort(n.date))}</span>
+					<span class="sm-outlook-stars">${scoreStars(n.score)}</span>
+					<span class="sm-outlook-score">${n.score}</span>
+					<span class="sm-outlook-moon">${MOON_EMOJI[n.phase]} ${Math.round(n.illum * 100)}%</span>
+				</div>`).join('');
+		};
+
+		// ---------- Init ----------
+		loc = loadLocation();
+		render();
+	</script>
+
+</body>
+
+</html>
