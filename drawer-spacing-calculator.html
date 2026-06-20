@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Drawer Spacing Calculator — Daniel Caldwell</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="site.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
+</head>
+
+<body>
+
+	<div class="container tool-container">
+		<nav class="breadcrumb"><a href="tools.html">← Tools</a></nav>
+
+		<h1 class="tool-title">Drawer Spacing Calculator</h1>
+
+		<div class="tool-layout">
+
+			<form class="tool-panel" id="drawerForm">
+
+				<section class="tool-section">
+					<h2>Cabinet Dimensions</h2>
+
+					<div class="tool-presets">
+						<span class="tool-presets-label">Presets:</span>
+						<button type="button" class="tool-preset-btn" data-preset="kitchen-base">Kitchen Base Cabinet</button>
+						<button type="button" class="tool-preset-btn" data-preset="bathroom-vanity">Bathroom Vanity</button>
+					</div>
+
+					<div class="tool-field">
+						<label for="cabinetHeight-whole">
+							Cabinet Height (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="height-info" aria-label="Height info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="cabinetHeight-whole"></select>
+							<select id="cabinetHeight-frac"></select>
+						</div>
+						<div class="info-tooltip" id="height-info" hidden>
+							Overall cabinet height, floor to top — including the toekick and the top/bottom panel material. Kitchen base cabinets are typically ~34.5" overall. Bathroom vanities are typically ~32"–36" overall. Kitchen wall cabinets vary widely, commonly 12"–42".
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="toekickHeight-whole">
+							Toekick Height (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="toekick-info" aria-label="Toekick info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="toekickHeight-whole"></select>
+							<select id="toekickHeight-frac"></select>
+						</div>
+						<div class="info-tooltip" id="toekick-info" hidden>
+							A standard toekick is 3"–4.5" tall (most commonly 4") and about 3" deep.
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="cabinetThickness">
+							Cabinet Material Thickness (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="cabinet-thickness-info" aria-label="Cabinet material thickness info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<select id="cabinetThickness">
+							<option value="0.5" selected>1/2"</option>
+							<option value="0.625">5/8"</option>
+							<option value="0.75">3/4"</option>
+						</select>
+						<div class="info-tooltip" id="cabinet-thickness-info" hidden>
+							Thickness of the cabinet's own panels — top/bottom, sides, and front edges — and of any shelves. Used to compute interior height, cabinet opening width, cabinet interior depth, and the extra space each shelf takes up.
+						</div>
+					</div>
+
+					<div class="tool-readout">
+						Interior Height: <strong id="interiorHeightReadout"></strong>
+						<span class="tool-readout-note">(Cabinet Height − Toekick − 2 × Material Thickness)</span>
+					</div>
+
+					<div class="tool-field">
+						<label for="cabinetWidth-whole">Cabinet Width (in)</label>
+						<div class="fraction-input">
+							<select id="cabinetWidth-whole"></select>
+							<select id="cabinetWidth-frac"></select>
+						</div>
+					</div>
+
+					<div class="tool-readout">
+						Cabinet Opening Width: <strong id="cabinetOpeningWidthReadout"></strong>
+						<span class="tool-readout-note">(Cabinet Width − 2 × Material Thickness)</span>
+					</div>
+
+					<div class="tool-field">
+						<label for="cabinetDepth-whole">
+							Cabinet Depth (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="depth-info" aria-label="Depth info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="cabinetDepth-whole"></select>
+							<select id="cabinetDepth-frac"></select>
+						</div>
+						<div class="info-tooltip" id="depth-info" hidden>
+							Standard overall depths: kitchen base cabinets are typically ~23"–25" deep. Bathroom vanities are typically ~19"–22" deep.
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="rearPanelThickness">
+							Rear Panel Thickness (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="rear-panel-info" aria-label="Rear panel thickness info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<select id="rearPanelThickness">
+							<option value="0.125">1/8"</option>
+							<option value="0.25" selected>1/4"</option>
+							<option value="0.375">3/8"</option>
+						</select>
+						<div class="info-tooltip" id="rear-panel-info" hidden>
+							Thickness of the cabinet's back panel. It sits in a dado/rabbet near the rear edge, reducing the usable interior depth.
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="doorThickness">
+							Door Thickness (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="door-thickness-info" aria-label="Door thickness info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<select id="doorThickness">
+							<option value="0.5">1/2"</option>
+							<option value="0.75" selected>3/4"</option>
+							<option value="1">1"</option>
+						</select>
+						<div class="info-tooltip" id="door-thickness-info" hidden>
+							Thickness of the door/drawer front mounted in front of the cabinet box. It sits in front of the box (and face frame, if any), reducing the usable interior depth.
+						</div>
+					</div>
+
+					<div class="tool-readout">
+						Cabinet Interior Depth: <strong id="cabinetInteriorDepthReadout"></strong>
+						<span class="tool-readout-note" id="cabinetInteriorDepthNote">(Cabinet Depth − Rear Panel − Material Thickness − Door)</span>
+					</div>
+				</section>
+
+				<section class="tool-section">
+					<h2>Cabinet Construction</h2>
+
+					<div class="tool-field">
+						<span class="tool-field-label-text">
+							Cabinet Style
+							<button type="button" class="info-tooltip-btn" data-tooltip="cabinet-style-info" aria-label="Cabinet style info"><i class="fas fa-circle-info"></i></button>
+						</span>
+						<div class="segmented-control" id="cabinetStyle" role="radiogroup" aria-label="Cabinet style">
+							<button type="button" class="segmented-option active" data-value="frameless" role="radio" aria-checked="true">Frameless</button>
+							<button type="button" class="segmented-option" data-value="framed" role="radio" aria-checked="false">Framed</button>
+						</div>
+						<div class="info-tooltip" id="cabinet-style-info" hidden>
+							Framed cabinets have a face frame with a horizontal divider rail between each stacked drawer opening. Frameless (European-style) cabinets have no face frame and need no drawer dividers.
+						</div>
+					</div>
+
+					<div class="tool-field framed-only" hidden>
+						<label for="faceFrameThickness">
+							Face Frame Thickness (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="face-frame-info" aria-label="Face frame thickness info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<select id="faceFrameThickness">
+							<option value="0.5">1/2"</option>
+							<option value="0.75" selected>3/4"</option>
+						</select>
+						<div class="info-tooltip" id="face-frame-info" hidden>
+							Thickness of the face frame stiles/rails mounted to the front of the cabinet box. Sits in front of the box, reducing the usable interior depth.
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="stretcherWidth-whole">
+							Stretcher / Rail Width (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="stretcher-width-info" aria-label="Stretcher and rail width info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="stretcherWidth-whole"></select>
+							<select id="stretcherWidth-frac"></select>
+						</div>
+						<div class="info-tooltip" id="stretcher-width-info" hidden>
+							Width of the top/back stretchers, and (for framed cabinets) the drawer-divider rails between stacked drawer openings.
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="toekickDepth-whole">
+							Toekick Depth (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="toekick-depth-info" aria-label="Toekick depth info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="toekickDepth-whole"></select>
+							<select id="toekickDepth-frac"></select>
+						</div>
+						<div class="info-tooltip" id="toekick-depth-info" hidden>
+							How far back the toekick is set from the cabinet's front edge — typically 3"–4". Used to size the bottom-panel cleats when no bottom dado is used.
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="bottomDadoDepth">
+							Bottom Panel Dado Depth
+							<button type="button" class="info-tooltip-btn" data-tooltip="bottom-dado-info" aria-label="Bottom panel dado depth info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<select id="bottomDadoDepth">
+							<option value="0">0" (pocket screws / cleats)</option>
+							<option value="0.25">1/4"</option>
+							<option value="0.375" selected>3/8"</option>
+							<option value="0.5">1/2"</option>
+						</select>
+						<div class="info-tooltip" id="bottom-dado-info" hidden>
+							Depth of the dado (groove) cut into the sides, front, and back that the bottom panel sits in — 3/8" is usually enough. Choose 0" if the bottom panel instead sits on cleats fastened with pocket screws; two bottom cleats are then added to the cut list. Limited by the cabinet material thickness — at least 1/4" of material must remain behind the dado.
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="backPanelDadoDepth">
+							Back Panel Dado Depth
+							<button type="button" class="info-tooltip-btn" data-tooltip="back-dado-info" aria-label="Back panel dado depth info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<select id="backPanelDadoDepth">
+							<option value="0.25">1/4"</option>
+							<option value="0.375" selected>3/8"</option>
+							<option value="0.5">1/2"</option>
+						</select>
+						<div class="info-tooltip" id="back-dado-info" hidden>
+							Depth of the dado (groove) cut into the top, bottom, and sides that the back panel sits in. Limited by the cabinet material thickness — at least 1/4" of material must remain behind the dado, so the maximum depth is the material thickness minus 1/4".
+						</div>
+					</div>
+				</section>
+
+				<section class="tool-section">
+					<h2>Drawer Gap &amp; Glides</h2>
+
+					<div class="tool-field">
+						<label for="drawerGap">Drawer Gap (in)</label>
+						<select id="drawerGap">
+							<option value="0.125">1/8"</option>
+							<option value="0.25">1/4"</option>
+							<option value="0.375">3/8"</option>
+							<option value="0.5">1/2"</option>
+							<option value="0.625">5/8"</option>
+							<option value="0.75">3/4"</option>
+							<option value="0.875">7/8"</option>
+							<option value="1" selected>1"</option>
+							<option value="1.25">1 1/4"</option>
+							<option value="1.5">1 1/2"</option>
+							<option value="1.75">1 3/4"</option>
+							<option value="2">2"</option>
+						</select>
+					</div>
+
+					<div class="tool-field">
+						<span class="tool-field-label-text">Drawer Glide Type</span>
+						<div class="segmented-control" id="glideType" role="radiogroup" aria-label="Drawer glide type">
+							<button type="button" class="segmented-option active" data-value="side-mount" role="radio" aria-checked="true">Side-Mount</button>
+							<button type="button" class="segmented-option" data-value="undermount" role="radio" aria-checked="false">Undermount</button>
+						</div>
+					</div>
+
+					<div class="tool-field">
+						<label for="sideClearance-whole">
+							<span id="sideClearanceLabel">Side Clearance per Side (in)</span>
+							<button type="button" class="info-tooltip-btn" data-tooltip="clearance-info" aria-label="Side clearance info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="sideClearance-whole"></select>
+							<select id="sideClearance-frac"></select>
+						</div>
+						<div class="info-tooltip" id="clearance-info" hidden></div>
+					</div>
+
+					<div class="tool-field side-mount-only">
+						<label for="sideMountGlideHeight-whole">
+							Side-Mount Slide Height (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="side-mount-height-info" aria-label="Side-mount slide height info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="sideMountGlideHeight-whole"></select>
+							<select id="sideMountGlideHeight-frac"></select>
+						</div>
+						<div class="info-tooltip" id="side-mount-height-info" hidden>
+							Side-mount slide bodies are typically 1.5"–2.5" tall, depending on length and load rating. If a drawer box is shorter than this, standard side-mount slides may not fit — used below as a non-fatal check.
+						</div>
+					</div>
+
+					<div class="tool-field undermount-only" hidden>
+						<label for="undermountGlideHeight-whole">
+							Undermount Glide Height (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="glide-height-info" aria-label="Undermount glide height info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="undermountGlideHeight-whole"></select>
+							<select id="undermountGlideHeight-frac"></select>
+						</div>
+						<div class="info-tooltip" id="glide-height-info" hidden>
+							The height of the undermount slide mechanism — consult your hardware's spec sheet. If this is taller than the drawer skirt height, the extra space is reserved below the drawer box.
+						</div>
+					</div>
+				</section>
+
+				<section class="tool-section">
+					<h2>Drawer Material Thickness</h2>
+					<div class="tool-field">
+						<label for="boxMaterialThickness">Drawer Box Material Thickness (sides/front/back)</label>
+						<select id="boxMaterialThickness">
+							<option value="0.375">3/8"</option>
+							<option value="0.5" selected>1/2"</option>
+							<option value="0.625">5/8"</option>
+							<option value="0.75">3/4"</option>
+						</select>
+					</div>
+					<div class="tool-field">
+						<label for="bottomPanelThickness">Drawer Bottom Panel Thickness</label>
+						<select id="bottomPanelThickness">
+							<option value="0.125">1/8"</option>
+							<option value="0.25" selected>1/4"</option>
+							<option value="0.375">3/8"</option>
+							<option value="0.5">1/2"</option>
+							<option value="0.625">5/8"</option>
+							<option value="0.75">3/4"</option>
+						</select>
+					</div>
+					<div class="tool-field">
+						<label for="drawerDadoDepth">
+							Drawer Bottom Dado Depth
+							<button type="button" class="info-tooltip-btn" data-tooltip="drawer-dado-info" aria-label="Drawer bottom dado depth info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<select id="drawerDadoDepth"></select>
+						<div class="info-tooltip" id="drawer-dado-info" hidden>
+							Depth of the dado (groove) cut into the box sides and front that the bottom panel sits in. The bottom panel extends into these grooves, so it is wider and shorter than the open box cavity. Limited by the box material thickness — at least 1/4" of material must remain behind the cut.
+						</div>
+					</div>
+					<div class="tool-field">
+						<label for="skirtHeight-whole">
+							Drawer Skirt Height (in)
+							<button type="button" class="info-tooltip-btn" data-tooltip="skirt-info" aria-label="Drawer skirt height info"><i class="fas fa-circle-info"></i></button>
+						</label>
+						<div class="fraction-input">
+							<select id="skirtHeight-whole"></select>
+							<select id="skirtHeight-frac"></select>
+						</div>
+						<div class="info-tooltip" id="skirt-info" hidden>
+							Distance from the bottom edge of the drawer box (front and sides) up to the bottom panel — i.e. the height of the "skirt" below the bottom panel. The back panel sits on top of the bottom panel rather than in a dado, so its height is the box height minus the skirt height minus the bottom panel thickness.
+						</div>
+					</div>
+				</section>
+
+				<section class="tool-section">
+					<h2>Drawer Slide Length</h2>
+					<div class="tool-field">
+						<label for="slideLength">Slide Length (in)</label>
+						<select id="slideLength"></select>
+						<div class="tool-caption" id="slideLengthNote"></div>
+					</div>
+				</section>
+
+				<section class="tool-section">
+					<h2>Drawers &amp; Shelves</h2>
+					<p class="tool-caption">
+						Drawers need a gap above and below for the slide/glide. Shelves take up only their own height — no gaps are reserved around them.
+					</p>
+					<div class="tool-table-wrapper">
+						<table class="drawer-rows-table">
+							<thead>
+								<tr><th>#</th><th>Type</th><th>Height (in)</th><th>Fill Remaining</th><th></th></tr>
+							</thead>
+							<tbody id="drawerRowsBody"></tbody>
+						</table>
+					</div>
+					<button type="button" class="tool-add-row-btn" id="addDrawerBtn">
+						<i class="fas fa-plus"></i> Add Row
+					</button>
+				</section>
+
+			</form>
+
+			<div class="tool-panel tool-results">
+
+				<section class="tool-section">
+					<h2>Height Breakdown</h2>
+					<div id="heightBreakdown" class="tool-breakdown"></div>
+					<div id="heightError" class="tool-error" hidden></div>
+					<div id="heightWarning" class="tool-warning" hidden></div>
+				</section>
+
+				<section class="tool-section">
+					<h2>Diagram</h2>
+					<div class="diagram-wrapper">
+						<svg id="cabinetDiagram" class="cabinet-diagram" preserveAspectRatio="xMidYMid meet"></svg>
+					</div>
+				</section>
+
+				<section class="tool-section">
+					<h2>Cut List</h2>
+					<p class="tool-caption">
+						Assumes front/back panels span the full drawer-box width, side panels fit between the front and back, and the bottom panel sits in a half-thickness dado. Adjust dimensions if your joinery differs.
+					</p>
+					<div id="cutListContainer"></div>
+				</section>
+
+				<button type="button" class="share-btn tool-share-btn" id="shareBtn" title="Copy link" aria-label="Copy link"><i class="fas fa-link"></i></button>
+			</div>
+
+		</div>
+
+	</div>
+
+	<div id="copy-notification" class="copy-notification" aria-live="polite">Link copied!</div>
+
+	<script>
+
+		// This code was created by me, Daniel Caldwell, and it is available to the public domain.
+
+		// ---- Constants ----
+
+		const SLIDE_LENGTHS = {
+			'side-mount': [10, 12, 14, 15, 16, 18, 20, 21, 22, 24],
+			'undermount': [9, 12, 14, 15, 18, 21],
+		};
+
+		// Width of the bottom-panel cleats used when bottomDadoDepth is 0
+		const BOTTOM_CLEAT_WIDTH = 1.5;
+		// Minimum material that must remain behind a dado cut, or the panel can break through
+		const MIN_DADO_REMAINING = 0.25;
+		// Possible depths for dados that are limited by MIN_DADO_REMAINING
+		const DADO_DEPTH_OPTIONS = [0.25, 0.375, 0.5];
+
+		const DEFAULT_STATE = {
+			cabinetHeight: 35,
+			cabinetThickness: 0.5,
+			cabinetWidth: 30,
+			cabinetDepth: 22,
+			rearPanelThickness: 0.25,
+			doorThickness: 0.75,
+			toekickHeight: 4,
+			toekickDepth: 3.5,
+			bottomDadoDepth: 0.375,
+			backPanelDadoDepth: 0.375,
+			cabinetStyle: 'frameless',
+			faceFrameThickness: 0.75,
+			stretcherWidth: 4,
+			drawerGap: 1,
+			glideType: 'side-mount',
+			sideClearanceSideMount: 0.5,
+			sideClearanceUndermount: 0.1875,
+			sideMountGlideHeight: 1.5,
+			skirtHeight: 0.375,
+			undermountGlideHeight: 0.5,
+			boxMaterialThickness: 0.5,
+			bottomPanelThickness: 0.25,
+			drawerDadoDepth: 0.25,
+			slideLength: null, // null => auto best-fit
+			items: [
+				{ type: 'drawer', height: 4 },
+				{ type: 'drawer', height: 4 },
+				{ type: 'drawer', height: 10 },
+			],
+		};
+
+		const PRESETS = {
+			'kitchen-base': { cabinetHeight: 33, cabinetThickness: 0.5, toekickHeight: 4, cabinetDepth: 23 },
+			'bathroom-vanity': { cabinetHeight: 35, cabinetThickness: 0.5, toekickHeight: 4, cabinetDepth: 20 },
+		};
+
+		// Interior height = overall cabinet height - toekick - top/bottom panels
+		function getInteriorHeight(state) {
+			return state.cabinetHeight - state.toekickHeight - 2 * state.cabinetThickness;
+		}
+
+		// Cabinet opening width = overall cabinet width - the two side panels
+		function getCabinetOpeningWidth(state) {
+			return state.cabinetWidth - 2 * state.cabinetThickness;
+		}
+
+		// Face frame thickness only applies to framed cabinets; frameless cabinets have none.
+		function getFaceFrameThickness(state) {
+			return state.cabinetStyle === 'framed' ? state.faceFrameThickness : 0;
+		}
+
+		// Cabinet interior depth = overall cabinet depth - rear panel - front material
+		// - door - face frame (the door and, for framed cabinets, the face frame sit in
+		// front of the box and reduce the usable depth behind them)
+		function getCabinetInteriorDepth(state) {
+			return state.cabinetDepth - state.rearPanelThickness - state.cabinetThickness - state.doorThickness - getFaceFrameThickness(state);
+		}
+
+		// ---- Pure calculation core (no DOM access) ----
+
+		function bestFitSlideLength(cabinetDepth, glideType) {
+			const lengths = SLIDE_LENGTHS[glideType];
+			const fits = lengths.filter(l => l <= cabinetDepth);
+			return fits.length ? Math.max(...fits) : null;
+		}
+
+		function extraGlideClearance(glideType, undermountGlideHeight, skirtHeight) {
+			if (glideType !== 'undermount') return 0;
+			return Math.max(0, undermountGlideHeight - skirtHeight);
+		}
+
+		function activeSideClearance(state) {
+			return state.glideType === 'undermount' ? state.sideClearanceUndermount : state.sideClearanceSideMount;
+		}
+
+		// A gap is reserved at a boundary whenever the item before or after it is a drawer
+		// (shelves need no clearance; cabinet top/bottom edges count as "not a drawer").
+		// A shelf's stated height is the clear space below it — the shelf board itself
+		// (materialThickness) adds to the space it consumes.
+		// An item with height === null is a "wildcard" that fills whatever space is left
+		// over after every other item (and every gap) has been accounted for.
+		// Returns { used, remaining, overflow, breakdown, maxDrawer, interiorGapCount }
+		function computeHeightBreakdown({ interiorHeight, drawerGap, items, glideType, skirtHeight, undermountGlideHeight, materialThickness }) {
+			const extra = extraGlideClearance(glideType, undermountGlideHeight, skirtHeight);
+			const isDrawer = (index) => index >= 0 && index < items.length && items[index].type === 'drawer';
+
+			const breakdown = [];
+			let used = 0;
+			let wildcardEntry = null;
+			let interiorGapCount = 0;
+
+			for (let i = 0; i <= items.length; i++) {
+				if (isDrawer(i - 1) || isDrawer(i)) {
+					breakdown.push({ type: 'gap', height: drawerGap });
+					used += drawerGap;
+					if (i > 0 && i < items.length) interiorGapCount++;
+				}
+				if (i < items.length) {
+					const item = items[i];
+					if (item.height == null) {
+						const entry = item.type === 'drawer'
+							? { type: 'drawer', index: i, wildcard: true, extra }
+							: { type: 'shelf', index: i, wildcard: true, materialThickness };
+						breakdown.push(entry);
+						wildcardEntry = entry;
+					} else if (item.type === 'drawer') {
+						const consumedHeight = item.height + extra;
+						const drawerBoxHeight = item.height - extra;
+						breakdown.push({ type: 'drawer', index: i, openingHeight: item.height, consumedHeight, drawerBoxHeight, extra });
+						used += consumedHeight;
+					} else {
+						const consumedHeight = item.height + materialThickness;
+						breakdown.push({ type: 'shelf', index: i, height: item.height, materialThickness, consumedHeight });
+						used += consumedHeight;
+					}
+				}
+			}
+
+			// The wildcard item's size is whatever is left after every other item and gap
+			// has been placed — compute it last, then add it to `used`.
+			if (wildcardEntry) {
+				const consumedHeight = Math.max(0, interiorHeight - used);
+				wildcardEntry.consumedHeight = consumedHeight;
+				if (wildcardEntry.type === 'drawer') {
+					wildcardEntry.openingHeight = Math.max(0, consumedHeight - extra);
+					wildcardEntry.drawerBoxHeight = Math.max(0, consumedHeight - 2 * extra);
+				} else {
+					wildcardEntry.height = Math.max(0, consumedHeight - materialThickness);
+				}
+				used += consumedHeight;
+			}
+
+			const remaining = interiorHeight - used;
+
+			// Largest additional drawer that could be added in the leftover space.
+			// If the last item is already a drawer, the gap below it is already
+			// accounted for in `used`, so only one more gap is needed for the new
+			// drawer's far side; otherwise two gaps (one on each side) are needed.
+			// Not applicable once a wildcard item is present, since it already
+			// consumes all the leftover space.
+			let maxDrawer = null;
+			if (!wildcardEntry && remaining > 0) {
+				const lastItem = items[items.length - 1];
+				const additionalGaps = (lastItem && lastItem.type === 'drawer') ? 1 : 2;
+				const maxDrawerOpening = remaining - additionalGaps * drawerGap;
+				if (maxDrawerOpening > 0) {
+					maxDrawer = {
+						openingHeight: maxDrawerOpening,
+						boxHeight: Math.max(0, maxDrawerOpening - extra),
+					};
+				}
+			}
+
+			return {
+				used,
+				remaining,
+				overflow: remaining < 0 ? -remaining : 0,
+				breakdown,
+				maxDrawer,
+				interiorGapCount,
+			};
+		}
+
+		// Returns drawer box dimensions + cut list pieces.
+		// The bottom panel sits in dados cut into the sides and front, so it extends
+		// past the inside cavity into those grooves (wider, but shorter front-to-back).
+		// The back panel sits on top of the bottom panel rather than in a dado, so it
+		// is shorter than the front/sides by the skirt height plus the bottom thickness.
+		function computeDrawerBox({ drawerBoxHeight, cabinetWidth, sideClearance, slideLength, boxMaterialThickness, bottomPanelThickness, drawerDadoDepth, skirtHeight }) {
+			const W = cabinetWidth - 2 * sideClearance;
+			const H = drawerBoxHeight;
+			const D = slideLength;
+			const T = boxMaterialThickness;
+			const BT = bottomPanelThickness;
+			const backHeight = Math.max(0, H - skirtHeight - BT);
+			return {
+				width: W, height: H, depth: D,
+				sides: { qty: 2, length: D - 2 * T, height: H, thickness: T },
+				front: { qty: 1, length: W, height: H, thickness: T },
+				back: { qty: 1, length: W, height: backHeight, thickness: T },
+				bottom: { qty: 1, width: W - 2 * T + 2 * drawerDadoDepth, depth: D - T - drawerDadoDepth, thickness: BT },
+			};
+		}
+
+		// ---- Formatting ----
+
+		// Formats a decimal inch value as a mixed number with a fraction, rounded to the nearest 1/16".
+		function formatInches(value) {
+			if (typeof value !== 'number' || !isFinite(value)) return '—';
+			const sign = value < 0 ? '-' : '';
+			value = Math.abs(value);
+			let whole = Math.floor(value);
+			let frac = Math.round((value - whole) * 16);
+			let denom = 16;
+			if (frac === 16) { frac = 0; whole += 1; }
+			while (frac > 0 && frac % 2 === 0) { frac /= 2; denom /= 2; }
+			let result = sign;
+			if (whole > 0 || frac === 0) result += String(whole);
+			if (frac > 0) {
+				if (whole > 0) result += ' ';
+				result += `${frac}/${denom}`;
+			}
+			return result + '"';
+		}
+
+		// Rebuilds a dado-depth <select>'s options to only include depths that leave at
+		// least MIN_DADO_REMAINING of material behind the cut (depth <= materialThickness
+		// - MIN_DADO_REMAINING). Returns the resulting value: `value` if still valid,
+		// otherwise the largest depth that fits (or 0 if `includeZero` and nothing fits).
+		function populateDadoDepthOptions(selectEl, value, materialThickness, includeZero, zeroLabel = '0" (pocket screws / cleats)') {
+			const maxDepth = materialThickness - MIN_DADO_REMAINING;
+			const depths = DADO_DEPTH_OPTIONS.filter(d => d <= maxDepth + 1e-9);
+
+			selectEl.innerHTML = '';
+			if (includeZero) {
+				const opt = document.createElement('option');
+				opt.value = '0';
+				opt.textContent = zeroLabel;
+				selectEl.appendChild(opt);
+			}
+			depths.forEach(d => {
+				const opt = document.createElement('option');
+				opt.value = String(d);
+				opt.textContent = formatInches(d);
+				selectEl.appendChild(opt);
+			});
+
+			const resolved = (depths.includes(value) || (includeZero && value === 0))
+				? value
+				: (depths.length ? depths[depths.length - 1] : 0);
+			selectEl.value = String(resolved);
+			return resolved;
+		}
+
+		// ---- Fraction dropdown helpers (whole inches + sixteenths) ----
+
+		function fractionLabel(sixteenths) {
+			if (sixteenths === 0) return '0';
+			let num = sixteenths, den = 16;
+			while (num % 2 === 0) { num /= 2; den /= 2; }
+			return `${num}/${den}"`;
+		}
+
+		function populateWholeSelect(select, maxWhole) {
+			select.innerHTML = '';
+			for (let i = 0; i <= maxWhole; i++) {
+				const opt = document.createElement('option');
+				opt.value = String(i);
+				opt.textContent = `${i}"`;
+				select.appendChild(opt);
+			}
+		}
+
+		function populateFractionSelect(select) {
+			select.innerHTML = '';
+			for (let n = 0; n < 16; n++) {
+				const opt = document.createElement('option');
+				opt.value = String(n / 16);
+				opt.textContent = fractionLabel(n);
+				select.appendChild(opt);
+			}
+		}
+
+		function initFractionInput(id, maxWhole) {
+			populateWholeSelect(document.getElementById(`${id}-whole`), maxWhole);
+			populateFractionSelect(document.getElementById(`${id}-frac`));
+		}
+
+		function getFractionInputValue(id) {
+			const whole = parseFloat(document.getElementById(`${id}-whole`).value) || 0;
+			const frac = parseFloat(document.getElementById(`${id}-frac`).value) || 0;
+			return whole + frac;
+		}
+
+		function setFractionInputValue(id, value) {
+			value = Math.max(0, value);
+			let whole = Math.floor(value);
+			let frac = Math.round((value - whole) * 16);
+			if (frac === 16) { frac = 0; whole += 1; }
+			document.getElementById(`${id}-whole`).value = String(whole);
+			document.getElementById(`${id}-frac`).value = String(frac / 16);
+		}
+
+		function bindFractionInput(id, onChange) {
+			const handler = () => onChange(getFractionInputValue(id));
+			document.getElementById(`${id}-whole`).addEventListener('change', handler);
+			document.getElementById(`${id}-frac`).addEventListener('change', handler);
+		}
+
+		// ---- State + URL sync ----
+
+		function cloneDefaultState() {
+			return JSON.parse(JSON.stringify(DEFAULT_STATE));
+		}
+
+		function stateToQueryString(state) {
+			const params = new URLSearchParams();
+			params.set('h', state.cabinetHeight);
+			params.set('ct', state.cabinetThickness);
+			params.set('w', state.cabinetWidth);
+			params.set('d', state.cabinetDepth);
+			params.set('rp', state.rearPanelThickness);
+			params.set('dt', state.doorThickness);
+			params.set('tk', state.toekickHeight);
+			params.set('tkd', state.toekickDepth);
+			params.set('bdd', state.bottomDadoDepth);
+			params.set('bpd', state.backPanelDadoDepth);
+			params.set('cs', state.cabinetStyle === 'framed' ? 'framed' : 'frameless');
+			params.set('fft', state.faceFrameThickness);
+			params.set('rw', state.stretcherWidth);
+			params.set('g', state.drawerGap);
+			params.set('glide', state.glideType === 'undermount' ? 'under' : 'side');
+			params.set('scs', state.sideClearanceSideMount);
+			params.set('scu', state.sideClearanceUndermount);
+			params.set('smh', state.sideMountGlideHeight);
+			params.set('skirt', state.skirtHeight);
+			params.set('ugh', state.undermountGlideHeight);
+			params.set('mt', state.boxMaterialThickness);
+			params.set('bt', state.bottomPanelThickness);
+			params.set('ddd', state.drawerDadoDepth);
+			if (state.slideLength != null) params.set('slide', state.slideLength);
+			params.set('items', state.items.map(item => {
+				const prefix = item.type === 'shelf' ? 's' : 'd';
+				return `${prefix}${item.height == null ? '*' : item.height}`;
+			}).join(','));
+			return params.toString();
+		}
+
+		function stateFromQueryString(search) {
+			const params = new URLSearchParams(search);
+			const state = cloneDefaultState();
+			const num = (key, fallback) => {
+				if (!params.has(key)) return fallback;
+				const n = parseFloat(params.get(key));
+				return isFinite(n) ? n : fallback;
+			};
+			state.cabinetHeight = num('h', state.cabinetHeight);
+			state.cabinetThickness = num('ct', state.cabinetThickness);
+			state.cabinetWidth = num('w', state.cabinetWidth);
+			state.cabinetDepth = num('d', state.cabinetDepth);
+			state.rearPanelThickness = num('rp', state.rearPanelThickness);
+			state.doorThickness = num('dt', state.doorThickness);
+			state.toekickHeight = num('tk', state.toekickHeight);
+			state.toekickDepth = num('tkd', state.toekickDepth);
+			state.bottomDadoDepth = num('bdd', state.bottomDadoDepth);
+			state.backPanelDadoDepth = num('bpd', state.backPanelDadoDepth);
+			state.cabinetStyle = params.get('cs') === 'framed' ? 'framed' : 'frameless';
+			state.faceFrameThickness = num('fft', state.faceFrameThickness);
+			state.stretcherWidth = num('rw', state.stretcherWidth);
+			state.drawerGap = num('g', state.drawerGap);
+			state.glideType = params.get('glide') === 'under' ? 'undermount' : 'side-mount';
+			state.sideClearanceSideMount = num('scs', state.sideClearanceSideMount);
+			state.sideClearanceUndermount = num('scu', state.sideClearanceUndermount);
+			state.sideMountGlideHeight = num('smh', state.sideMountGlideHeight);
+			state.skirtHeight = num('skirt', state.skirtHeight);
+			state.undermountGlideHeight = num('ugh', state.undermountGlideHeight);
+			state.boxMaterialThickness = num('mt', state.boxMaterialThickness);
+			state.bottomPanelThickness = num('bt', state.bottomPanelThickness);
+			state.drawerDadoDepth = num('ddd', state.drawerDadoDepth);
+			state.slideLength = params.has('slide') ? num('slide', null) : null;
+			if (params.has('items')) {
+				let sawWildcard = false;
+				const parsed = params.get('items').split(',').map(token => {
+					const type = token.charAt(0) === 's' ? 'shelf' : 'drawer';
+					const heightToken = token.slice(1);
+					if (heightToken === '*') {
+						// Only one wildcard ("fill remaining") item is allowed.
+						if (sawWildcard) return { type, height: 4 };
+						sawWildcard = true;
+						return { type, height: null };
+					}
+					const height = parseFloat(heightToken);
+					return (isFinite(height) && height > 0) ? { type, height } : null;
+				}).filter(Boolean);
+				if (parsed.length) state.items = parsed;
+			}
+			return state;
+		}
+
+		let state = stateFromQueryString(window.location.search);
+
+		// ---- DOM references ----
+
+		const els = {
+			cabinetThickness: document.getElementById('cabinetThickness'),
+			interiorHeightReadout: document.getElementById('interiorHeightReadout'),
+			cabinetOpeningWidthReadout: document.getElementById('cabinetOpeningWidthReadout'),
+			rearPanelThickness: document.getElementById('rearPanelThickness'),
+			doorThickness: document.getElementById('doorThickness'),
+			cabinetInteriorDepthReadout: document.getElementById('cabinetInteriorDepthReadout'),
+			cabinetInteriorDepthNote: document.getElementById('cabinetInteriorDepthNote'),
+			cabinetStyle: document.getElementById('cabinetStyle'),
+			faceFrameThickness: document.getElementById('faceFrameThickness'),
+			bottomDadoDepth: document.getElementById('bottomDadoDepth'),
+			backPanelDadoDepth: document.getElementById('backPanelDadoDepth'),
+			drawerGap: document.getElementById('drawerGap'),
+			glideType: document.getElementById('glideType'),
+			sideClearanceLabel: document.getElementById('sideClearanceLabel'),
+			clearanceInfo: document.getElementById('clearance-info'),
+			boxMaterialThickness: document.getElementById('boxMaterialThickness'),
+			bottomPanelThickness: document.getElementById('bottomPanelThickness'),
+			drawerDadoDepth: document.getElementById('drawerDadoDepth'),
+			slideLength: document.getElementById('slideLength'),
+			slideLengthNote: document.getElementById('slideLengthNote'),
+			drawerRowsBody: document.getElementById('drawerRowsBody'),
+			addDrawerBtn: document.getElementById('addDrawerBtn'),
+			heightBreakdown: document.getElementById('heightBreakdown'),
+			heightError: document.getElementById('heightError'),
+			heightWarning: document.getElementById('heightWarning'),
+			cabinetDiagram: document.getElementById('cabinetDiagram'),
+			cutListContainer: document.getElementById('cutListContainer'),
+			shareBtn: document.getElementById('shareBtn'),
+		};
+
+		const sideMountOnlyEls = document.querySelectorAll('.side-mount-only');
+		const undermountOnlyEls = document.querySelectorAll('.undermount-only');
+		const framedOnlyEls = document.querySelectorAll('.framed-only');
+
+		const CLEARANCE_TOOLTIPS = {
+			'side-mount': 'A common rule of thumb is 1/2" of clearance per side (1" total) between the drawer box and the cabinet opening — side-mount slide bodies are typically about 1/2" wide.',
+			'undermount': 'Undermount slides sit beneath the drawer rather than beside it, so clearance can be much smaller — typically 1/8"–3/16" per side. It can be less since there\'s no slide hardware beside the box (the slide body itself is roughly 2" wide, but it\'s underneath).',
+		};
+
+		// ---- Rendering: form <-> state plumbing ----
+
+		// Rebuilds the bottom-panel and back-panel dado depth selects based on the
+		// current cabinet material thickness, clamping state if the stored value no
+		// longer leaves enough material behind the dado.
+		function syncDadoDepthOptions() {
+			state.bottomDadoDepth = populateDadoDepthOptions(els.bottomDadoDepth, state.bottomDadoDepth, state.cabinetThickness, true);
+			state.backPanelDadoDepth = populateDadoDepthOptions(els.backPanelDadoDepth, state.backPanelDadoDepth, state.cabinetThickness, false);
+		}
+
+		// Rebuilds the drawer bottom dado depth select based on the current drawer
+		// box material thickness, clamping state if the stored value no longer
+		// leaves enough material behind the dado.
+		function syncDrawerDadoDepthOptions() {
+			state.drawerDadoDepth = populateDadoDepthOptions(els.drawerDadoDepth, state.drawerDadoDepth, state.boxMaterialThickness, true, '0" (no dado — butt joint, not recommended)');
+		}
+
+		function applyStateToForm() {
+			setFractionInputValue('cabinetHeight', state.cabinetHeight);
+			els.cabinetThickness.value = state.cabinetThickness;
+			setFractionInputValue('cabinetWidth', state.cabinetWidth);
+			setFractionInputValue('cabinetDepth', state.cabinetDepth);
+			els.rearPanelThickness.value = state.rearPanelThickness;
+			els.doorThickness.value = state.doorThickness;
+			setFractionInputValue('toekickHeight', state.toekickHeight);
+			setFractionInputValue('toekickDepth', state.toekickDepth);
+			syncDadoDepthOptions();
+
+			els.cabinetStyle.querySelectorAll('.segmented-option').forEach(btn => {
+				const active = btn.dataset.value === state.cabinetStyle;
+				btn.classList.toggle('active', active);
+				btn.setAttribute('aria-checked', active ? 'true' : 'false');
+			});
+
+			framedOnlyEls.forEach(el => el.hidden = state.cabinetStyle !== 'framed');
+			els.faceFrameThickness.value = state.faceFrameThickness;
+			setFractionInputValue('stretcherWidth', state.stretcherWidth);
+
+			els.drawerGap.value = state.drawerGap;
+			setFractionInputValue('sideMountGlideHeight', state.sideMountGlideHeight);
+			setFractionInputValue('undermountGlideHeight', state.undermountGlideHeight);
+			els.boxMaterialThickness.value = state.boxMaterialThickness;
+			els.bottomPanelThickness.value = state.bottomPanelThickness;
+			syncDrawerDadoDepthOptions();
+			setFractionInputValue('skirtHeight', state.skirtHeight);
+
+			els.glideType.querySelectorAll('.segmented-option').forEach(btn => {
+				const active = btn.dataset.value === state.glideType;
+				btn.classList.toggle('active', active);
+				btn.setAttribute('aria-checked', active ? 'true' : 'false');
+			});
+
+			sideMountOnlyEls.forEach(el => el.hidden = state.glideType !== 'side-mount');
+			undermountOnlyEls.forEach(el => el.hidden = state.glideType !== 'undermount');
+
+			setFractionInputValue('sideClearance', activeSideClearance(state));
+			els.sideClearanceLabel.textContent = state.glideType === 'undermount'
+				? 'Side Clearance per Side (in) — undermount'
+				: 'Side Clearance per Side (in) — side-mount';
+			els.clearanceInfo.textContent = CLEARANCE_TOOLTIPS[state.glideType];
+
+			els.interiorHeightReadout.textContent = formatInches(getInteriorHeight(state));
+			els.cabinetOpeningWidthReadout.textContent = formatInches(getCabinetOpeningWidth(state));
+			els.cabinetInteriorDepthReadout.textContent = formatInches(getCabinetInteriorDepth(state));
+			els.cabinetInteriorDepthNote.textContent = state.cabinetStyle === 'framed'
+				? '(Cabinet Depth − Rear Panel − Material Thickness − Door − Face Frame)'
+				: '(Cabinet Depth − Rear Panel − Material Thickness − Door)';
+
+			renderDrawerRows();
+			renderSlideLengthOptions();
+		}
+
+		function renderDrawerRows() {
+			els.drawerRowsBody.innerHTML = '';
+			state.items.forEach((item, index) => {
+				const row = document.createElement('tr');
+
+				const numCell = document.createElement('td');
+				numCell.textContent = String(index + 1);
+				row.appendChild(numCell);
+
+				const typeCell = document.createElement('td');
+				const typeSelect = document.createElement('select');
+				[['drawer', 'Drawer'], ['shelf', 'Shelf']].forEach(([value, label]) => {
+					const opt = document.createElement('option');
+					opt.value = value;
+					opt.textContent = label;
+					typeSelect.appendChild(opt);
+				});
+				typeSelect.value = item.type;
+				typeSelect.addEventListener('change', () => {
+					state.items[index].type = typeSelect.value;
+					recalculate();
+				});
+				typeCell.appendChild(typeSelect);
+				row.appendChild(typeCell);
+
+				const heightCell = document.createElement('td');
+				const heightId = `itemHeight-${index}`;
+				const fractionWrapper = document.createElement('div');
+				fractionWrapper.className = 'fraction-input';
+				const wholeSelect = document.createElement('select');
+				wholeSelect.id = `${heightId}-whole`;
+				const fracSelect = document.createElement('select');
+				fracSelect.id = `${heightId}-frac`;
+				fractionWrapper.appendChild(wholeSelect);
+				fractionWrapper.appendChild(fracSelect);
+				heightCell.appendChild(fractionWrapper);
+				row.appendChild(heightCell);
+
+				const remainingCell = document.createElement('td');
+				const remainingCheckbox = document.createElement('input');
+				remainingCheckbox.type = 'checkbox';
+				remainingCheckbox.setAttribute('aria-label', 'Fill remaining space');
+				remainingCheckbox.checked = item.height == null;
+				remainingCheckbox.addEventListener('change', () => {
+					if (remainingCheckbox.checked) {
+						// Only one wildcard ("fill remaining") item is allowed at a time.
+						state.items.forEach(it => {
+							if (it !== item && it.height == null) it.height = it._lastHeight || 4;
+						});
+						item._lastHeight = item.height != null ? item.height : (item._lastHeight || 4);
+						item.height = null;
+					} else {
+						item.height = item._lastHeight || 4;
+					}
+					renderDrawerRows();
+					recalculate();
+				});
+				remainingCell.appendChild(remainingCheckbox);
+				row.appendChild(remainingCell);
+
+				const removeCell = document.createElement('td');
+				const removeBtn = document.createElement('button');
+				removeBtn.type = 'button';
+				removeBtn.className = 'tool-remove-row-btn';
+				removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
+				removeBtn.setAttribute('aria-label', 'Remove row');
+				removeBtn.disabled = state.items.length <= 1;
+				removeBtn.addEventListener('click', () => {
+					if (state.items.length <= 1) return;
+					state.items.splice(index, 1);
+					renderDrawerRows();
+					recalculate();
+				});
+				removeCell.appendChild(removeBtn);
+				row.appendChild(removeCell);
+
+				els.drawerRowsBody.appendChild(row);
+
+				initFractionInput(heightId, 36);
+				const isWildcard = item.height == null;
+				setFractionInputValue(heightId, isWildcard ? (item._lastHeight || 4) : item.height);
+				wholeSelect.disabled = isWildcard;
+				fracSelect.disabled = isWildcard;
+				fractionWrapper.classList.toggle('fraction-input-disabled', isWildcard);
+				bindFractionInput(heightId, (value) => {
+					if (value > 0) {
+						state.items[index].height = value;
+						state.items[index]._lastHeight = value;
+						recalculate();
+					}
+				});
+			});
+		}
+
+		function renderSlideLengthOptions() {
+			const lengths = SLIDE_LENGTHS[state.glideType];
+			const auto = bestFitSlideLength(getCabinetInteriorDepth(state), state.glideType);
+
+			els.slideLength.innerHTML = '';
+
+			const autoOption = document.createElement('option');
+			autoOption.value = '';
+			autoOption.textContent = auto != null
+				? `Auto (best fit: ${formatInches(auto)})`
+				: 'Auto (none fit)';
+			els.slideLength.appendChild(autoOption);
+
+			lengths.forEach(len => {
+				const opt = document.createElement('option');
+				opt.value = String(len);
+				opt.textContent = formatInches(len);
+				els.slideLength.appendChild(opt);
+			});
+
+			els.slideLength.value = state.slideLength != null ? String(state.slideLength) : '';
+
+			if (auto == null) {
+				els.slideLengthNote.textContent = `No standard ${state.glideType === 'undermount' ? 'undermount' : 'side-mount'} slide length fits this depth (minimum ${formatInches(Math.min(...lengths))} required). Using the smallest standard size for the cut list — select a length manually if needed.`;
+			} else {
+				els.slideLengthNote.textContent = '';
+			}
+		}
+
+		// ---- Rendering: height breakdown ----
+
+		function renderBreakdown(result, state) {
+			els.heightBreakdown.innerHTML = '';
+
+			result.breakdown.forEach(entry => {
+				const row = document.createElement('div');
+				if (entry.type === 'gap') {
+					row.className = 'tool-breakdown-row tool-breakdown-gap';
+					row.innerHTML = `<span>Gap</span><span>${formatInches(entry.height)}</span>`;
+				} else if (entry.type === 'shelf') {
+					row.className = 'tool-breakdown-row';
+					const wildcardNote = entry.wildcard ? ' (fills remaining space)' : '';
+					const detail = `Shelf ${entry.index + 1}${wildcardNote} — ${formatInches(entry.height)} + ${formatInches(entry.materialThickness)} shelf material`;
+					row.innerHTML = `<span>${detail}</span><span>${formatInches(entry.consumedHeight)}</span>`;
+				} else {
+					row.className = 'tool-breakdown-row';
+					const wildcardNote = entry.wildcard ? ' (fills remaining space)' : '';
+					let detail = `Drawer ${entry.index + 1}${wildcardNote} — opening ${formatInches(entry.openingHeight)}, box height ${formatInches(entry.drawerBoxHeight)}`;
+					if (entry.extra > 0) {
+						detail += ` (+${formatInches(entry.extra)} glide clearance)`;
+					}
+					row.innerHTML = `<span>${detail}</span><span>${formatInches(entry.consumedHeight)}</span>`;
+				}
+				els.heightBreakdown.appendChild(row);
+			});
+
+			const summaryRow = document.createElement('div');
+			summaryRow.className = 'tool-breakdown-row';
+			if (result.remaining >= 0) {
+				summaryRow.innerHTML = `<span>Remaining / unused space</span><span>${formatInches(result.remaining)}</span>`;
+			} else {
+				summaryRow.innerHTML = `<span>Total used</span><span>${formatInches(result.used)} of ${formatInches(getInteriorHeight(state))}</span>`;
+			}
+			els.heightBreakdown.appendChild(summaryRow);
+
+			if (result.maxDrawer) {
+				const maxRow = document.createElement('div');
+				maxRow.className = 'tool-breakdown-row tool-breakdown-max';
+				maxRow.innerHTML = `<span>Largest drawer that fits in the leftover</span><span>opening ${formatInches(result.maxDrawer.openingHeight)}, box ${formatInches(result.maxDrawer.boxHeight)}</span>`;
+				els.heightBreakdown.appendChild(maxRow);
+			}
+		}
+
+		// ---- Rendering: SVG diagram ----
+
+		const SVG_NS = 'http://www.w3.org/2000/svg';
+		const DIAGRAM_SCALE = 10; // viewBox units per inch
+
+		function svgEl(tag, attrs) {
+			const el = document.createElementNS(SVG_NS, tag);
+			for (const [key, value] of Object.entries(attrs || {})) {
+				el.setAttribute(key, value);
+			}
+			return el;
+		}
+
+		function clearSvg(svg) {
+			while (svg.firstChild) svg.removeChild(svg.firstChild);
+		}
+
+		function getDiagramMessageEl() {
+			const wrapper = els.cabinetDiagram.parentElement;
+			let msgEl = wrapper.querySelector('.diagram-message');
+			if (!msgEl) {
+				msgEl = document.createElement('div');
+				msgEl.className = 'diagram-message';
+				wrapper.appendChild(msgEl);
+			}
+			return msgEl;
+		}
+
+		function renderDiagramMessage(message) {
+			clearSvg(els.cabinetDiagram);
+			els.cabinetDiagram.hidden = true;
+			const msgEl = getDiagramMessageEl();
+			msgEl.textContent = message;
+			msgEl.hidden = false;
+		}
+
+		function renderDiagram(state, result, drawerBoxWidth, slideLength) {
+			const msgEl = getDiagramMessageEl();
+			msgEl.hidden = true;
+			els.cabinetDiagram.hidden = false;
+
+			const svg = els.cabinetDiagram;
+			clearSvg(svg);
+
+			const W = state.cabinetWidth * DIAGRAM_SCALE;
+			const H = state.cabinetHeight * DIAGRAM_SCALE;
+			svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+			// Outer cabinet outline
+			svg.appendChild(svgEl('rect', {
+				x: 0, y: 0, width: W, height: H,
+				style: 'fill: var(--bg-color); stroke: var(--border-color); stroke-width: 2;'
+			}));
+
+			const thicknessPx = state.cabinetThickness * DIAGRAM_SCALE;
+			const toekickPx = state.toekickHeight * DIAGRAM_SCALE;
+			const openingX = thicknessPx;
+			const openingW = Math.max(getCabinetOpeningWidth(state) * DIAGRAM_SCALE, 0);
+
+			function panelRect(y, h, labelText) {
+				svg.appendChild(svgEl('rect', {
+					x: 0, y, width: W, height: h,
+					style: 'fill: var(--settings-bg); stroke: var(--border-color); stroke-width: 1;'
+				}));
+				if (h > 6) {
+					const label = svgEl('text', {
+						x: W / 2, y: y + h / 2,
+						'text-anchor': 'middle', 'dominant-baseline': 'middle',
+						style: `fill: var(--text-color); font-size: ${Math.min(h * 0.5, 10)}px; font-family: Arial, sans-serif;`
+					});
+					label.textContent = labelText;
+					svg.appendChild(label);
+				}
+			}
+
+			function sidePanelRect(x, labelText) {
+				const y = thicknessPx;
+				const h = Math.max(H - toekickPx - 2 * thicknessPx, 0);
+				svg.appendChild(svgEl('rect', {
+					x, y, width: thicknessPx, height: h,
+					style: 'fill: var(--settings-bg); stroke: var(--border-color); stroke-width: 1;'
+				}));
+				if (thicknessPx > 6 && h > 20) {
+					const cx = x + thicknessPx / 2;
+					const cy = y + h / 2;
+					const label = svgEl('text', {
+						x: cx, y: cy,
+						'text-anchor': 'middle', 'dominant-baseline': 'middle',
+						transform: `rotate(-90 ${cx} ${cy})`,
+						style: `fill: var(--text-color); font-size: ${Math.min(thicknessPx * 0.5, 10)}px; font-family: Arial, sans-serif;`
+					});
+					label.textContent = labelText;
+					svg.appendChild(label);
+				}
+			}
+
+			// Top panel
+			panelRect(0, thicknessPx, `Top panel — ${formatInches(state.cabinetThickness)}`);
+
+			// Bottom panel (just above the toekick)
+			panelRect(H - toekickPx - thicknessPx, thicknessPx, `Bottom panel — ${formatInches(state.cabinetThickness)}`);
+
+			// Side panels
+			sidePanelRect(0, `Side — ${formatInches(state.cabinetThickness)}`);
+			sidePanelRect(W - thicknessPx, `Side — ${formatInches(state.cabinetThickness)}`);
+
+			// Toekick region
+			if (state.toekickHeight > 0) {
+				const toekickY = H - toekickPx;
+				svg.appendChild(svgEl('rect', {
+					x: 0, y: toekickY, width: W, height: toekickPx,
+					style: 'fill: var(--settings-border);'
+				}));
+				const label = svgEl('text', {
+					x: W / 2, y: toekickY + toekickPx / 2,
+					'text-anchor': 'middle', 'dominant-baseline': 'middle',
+					style: `fill: var(--text-color); font-size: ${Math.min(toekickPx * 0.5, 11)}px; font-family: Arial, sans-serif;`
+				});
+				label.textContent = `Toekick — ${formatInches(state.toekickHeight)}`;
+				svg.appendChild(label);
+			}
+
+			// Interior region: walk breakdown entries (plus a synthetic "space" entry for unused space)
+			const entries = result.breakdown.slice();
+			if (result.remaining > 0) {
+				const insertIdx = (entries.length > 0 && entries[entries.length - 1].type === 'gap')
+					? entries.length - 1
+					: entries.length;
+				entries.splice(insertIdx, 0, { type: 'space', height: result.remaining });
+			}
+
+			const sideClearancePx = activeSideClearance(state) * DIAGRAM_SCALE;
+			let y = thicknessPx;
+
+			entries.forEach(entry => {
+				const heightPx = (entry.type === 'drawer' || entry.type === 'shelf' ? entry.consumedHeight : entry.height) * DIAGRAM_SCALE;
+
+				if (entry.type === 'gap') {
+					const lineY = y + heightPx / 2;
+					svg.appendChild(svgEl('line', {
+						x1: openingX + 4, y1: lineY, x2: openingX + openingW - 4, y2: lineY,
+						style: 'stroke: var(--settings-border); stroke-width: 1; stroke-dasharray: 4 3;'
+					}));
+				} else if (entry.type === 'space') {
+					svg.appendChild(svgEl('rect', {
+						x: openingX + 1, y: y + 1, width: Math.max(openingW - 2, 0), height: Math.max(heightPx - 2, 0),
+						style: 'fill: none; stroke: var(--settings-border); stroke-width: 1; stroke-dasharray: 6 4;'
+					}));
+					const label = svgEl('text', {
+						x: openingX + openingW / 2, y: y + heightPx / 2,
+						'text-anchor': 'middle', 'dominant-baseline': 'middle',
+						style: `fill: var(--text-color); opacity: 0.6; font-size: ${Math.min(heightPx * 0.35, 11)}px; font-family: Arial, sans-serif;`
+					});
+					label.textContent = `Unused — ${formatInches(entry.height)}`;
+					svg.appendChild(label);
+				} else if (entry.type === 'shelf') {
+					svg.appendChild(svgEl('rect', {
+						x: openingX + 1, y: y + 1, width: Math.max(openingW - 2, 0), height: Math.max(heightPx - 2, 0),
+						style: 'fill: var(--settings-bg); stroke: var(--border-color); stroke-width: 1.5;'
+					}));
+					const label = svgEl('text', {
+						x: openingX + openingW / 2, y: y + heightPx / 2,
+						'text-anchor': 'middle', 'dominant-baseline': 'middle',
+						style: `fill: var(--text-color); font-size: ${Math.min(heightPx * 0.3, 13)}px; font-family: Arial, sans-serif; font-weight: bold;`
+					});
+					label.textContent = `Shelf ${entry.index + 1}${entry.wildcard ? ' (remaining)' : ''} — ${formatInches(entry.height)} + ${formatInches(entry.materialThickness)}`;
+					svg.appendChild(label);
+				} else if (entry.type === 'drawer') {
+					// Opening outline
+					svg.appendChild(svgEl('rect', {
+						x: openingX + 1, y: y + 1, width: Math.max(openingW - 2, 0), height: Math.max(heightPx - 2, 0),
+						style: 'fill: var(--settings-bg); stroke: var(--border-color); stroke-width: 1.5;'
+					}));
+
+					const boxHeightPx = entry.drawerBoxHeight * DIAGRAM_SCALE;
+					const extraPx = entry.extra * DIAGRAM_SCALE;
+					const innerW = Math.max(openingW - 2 * sideClearancePx, 0);
+					const boxX = openingX + sideClearancePx;
+					const boxY = y;
+
+					// Drawer box
+					svg.appendChild(svgEl('rect', {
+						x: boxX, y: boxY + 2, width: innerW, height: Math.max(boxHeightPx - 4, 0),
+						style: 'fill: var(--bg-color); stroke: var(--border-color); stroke-width: 1.5;'
+					}));
+
+					// Glide representation
+					if (state.glideType === 'side-mount') {
+						const railW = Math.max(Math.min(sideClearancePx * 0.6, 6), 2);
+						[boxX - railW, boxX + innerW].forEach(railX => {
+							svg.appendChild(svgEl('rect', {
+								x: Math.max(railX, openingX), y: boxY + 2, width: railW, height: Math.max(boxHeightPx - 4, 0),
+								style: 'fill: var(--border-color); opacity: 0.35;'
+							}));
+						});
+					} else if (extraPx > 0.5) {
+						svg.appendChild(svgEl('rect', {
+							x: boxX, y: boxY + boxHeightPx + 2, width: innerW, height: Math.max(extraPx - 3, 1),
+							style: 'fill: var(--border-color); opacity: 0.35;'
+						}));
+					}
+
+					// Label
+					const label = svgEl('text', {
+						x: openingX + openingW / 2, y: y + heightPx / 2,
+						'text-anchor': 'middle', 'dominant-baseline': 'middle',
+						style: `fill: var(--text-color); font-size: ${Math.min(heightPx * 0.3, 13)}px; font-family: Arial, sans-serif; font-weight: bold;`
+					});
+					label.textContent = `Drawer ${entry.index + 1}${entry.wildcard ? ' (remaining)' : ''} — box ${formatInches(entry.drawerBoxHeight)}`;
+					svg.appendChild(label);
+				}
+
+				y += heightPx;
+			});
+		}
+
+		// ---- Rendering: cut list ----
+
+		// Builds a `.cut-list-table` with the standard Part/Qty/Length/Width/Thickness columns.
+		function buildCutListTable(captionText, rows) {
+			const table = document.createElement('table');
+			table.className = 'cut-list-table';
+
+			const caption = document.createElement('caption');
+			caption.textContent = captionText;
+			table.appendChild(caption);
+
+			const thead = document.createElement('thead');
+			thead.innerHTML = '<tr><th>Part</th><th>Qty</th><th>Length</th><th>Width</th><th>Thickness</th></tr>';
+			table.appendChild(thead);
+
+			const tbody = document.createElement('tbody');
+			rows.forEach(cols => {
+				const tr = document.createElement('tr');
+				cols.forEach(text => {
+					const td = document.createElement('td');
+					td.textContent = String(text);
+					tr.appendChild(td);
+				});
+				tbody.appendChild(tr);
+			});
+			table.appendChild(tbody);
+
+			return table;
+		}
+
+		// Cabinet carcass: sides, top/back stretchers, bottom, toekick, and
+		// (conditionally) bottom-panel cleats and framed-cabinet drawer dividers.
+		function renderCarcassCutList(state, result) {
+			const cabinetOpeningWidth = getCabinetOpeningWidth(state);
+			const cabinetInteriorDepth = getCabinetInteriorDepth(state);
+
+			const sideDepth = state.cabinetDepth - state.doorThickness - getFaceFrameThickness(state);
+
+			const rows = [
+				['Sides', 2, formatInches(state.cabinetHeight), formatInches(sideDepth), formatInches(state.cabinetThickness)],
+				['Top Stretchers', 2, formatInches(cabinetOpeningWidth), formatInches(state.stretcherWidth), formatInches(state.cabinetThickness)],
+				['Back Stretchers', 2, formatInches(cabinetOpeningWidth), formatInches(state.stretcherWidth), formatInches(state.cabinetThickness)],
+				['Bottom', 1, formatInches(cabinetOpeningWidth + state.bottomDadoDepth), formatInches(cabinetInteriorDepth), formatInches(state.cabinetThickness)],
+				['Toekick', 1, formatInches(cabinetOpeningWidth), formatInches(state.toekickHeight), formatInches(state.cabinetThickness)],
+				['Back Panel', 1, formatInches(state.cabinetHeight), formatInches(cabinetOpeningWidth + state.backPanelDadoDepth - 0.125), formatInches(state.rearPanelThickness)],
+			];
+
+			if (state.bottomDadoDepth === 0) {
+				const cleatLength = state.cabinetDepth - 2 * state.cabinetThickness - state.toekickDepth;
+				rows.push(['Bottom Cleats', 2, formatInches(cleatLength), formatInches(BOTTOM_CLEAT_WIDTH), formatInches(state.cabinetThickness)]);
+			}
+
+			if (state.cabinetStyle === 'framed' && result.interiorGapCount > 0) {
+				rows.push(['Drawer Dividers', result.interiorGapCount, formatInches(cabinetOpeningWidth), formatInches(state.stretcherWidth), formatInches(state.cabinetThickness)]);
+			}
+
+			els.cutListContainer.appendChild(buildCutListTable('Cabinet Carcass', rows));
+		}
+
+		function renderCutList(state, result, drawerBoxWidth, slideLength) {
+			els.cutListContainer.innerHTML = '';
+
+			renderCarcassCutList(state, result);
+
+			result.breakdown.filter(e => e.type === 'drawer').forEach(entry => {
+				const box = computeDrawerBox({
+					drawerBoxHeight: entry.drawerBoxHeight,
+					cabinetWidth: getCabinetOpeningWidth(state),
+					sideClearance: activeSideClearance(state),
+					slideLength,
+					boxMaterialThickness: state.boxMaterialThickness,
+					bottomPanelThickness: state.bottomPanelThickness,
+					drawerDadoDepth: state.drawerDadoDepth,
+					skirtHeight: state.skirtHeight,
+				});
+
+				const wildcardNote = entry.wildcard ? ' (fills remaining space)' : '';
+				const caption = `Drawer ${entry.index + 1}${wildcardNote} — Box ${formatInches(box.width)} W × ${formatInches(box.height)} H × ${formatInches(box.depth)} D`;
+				const rows = [
+					['Sides', box.sides.qty, formatInches(box.sides.length), formatInches(box.sides.height), formatInches(box.sides.thickness)],
+					['Front', box.front.qty, formatInches(box.front.length), formatInches(box.front.height), formatInches(box.front.thickness)],
+					['Back', box.back.qty, formatInches(box.back.length), formatInches(box.back.height), formatInches(box.back.thickness)],
+					['Bottom', box.bottom.qty, formatInches(box.bottom.width), formatInches(box.bottom.depth), formatInches(box.bottom.thickness)],
+				];
+
+				els.cutListContainer.appendChild(buildCutListTable(caption, rows));
+			});
+
+			result.breakdown.filter(e => e.type === 'shelf').forEach(entry => {
+				const wildcardNote = entry.wildcard ? ' (fills remaining space)' : '';
+				const caption = `Shelf ${entry.index + 1}${wildcardNote}`;
+				const rows = [
+					['Shelf', 1, formatInches(getCabinetOpeningWidth(state)), formatInches(getCabinetInteriorDepth(state)), formatInches(state.cabinetThickness)],
+				];
+
+				els.cutListContainer.appendChild(buildCutListTable(caption, rows));
+			});
+		}
+
+		// ---- Main recalculation ----
+
+		function recalculate() {
+			const interiorHeight = getInteriorHeight(state);
+			const cabinetOpeningWidth = getCabinetOpeningWidth(state);
+			const cabinetInteriorDepth = getCabinetInteriorDepth(state);
+			els.interiorHeightReadout.textContent = formatInches(interiorHeight);
+			els.cabinetOpeningWidthReadout.textContent = formatInches(cabinetOpeningWidth);
+			els.cabinetInteriorDepthReadout.textContent = formatInches(cabinetInteriorDepth);
+
+			const result = computeHeightBreakdown({
+				interiorHeight,
+				drawerGap: state.drawerGap,
+				items: state.items,
+				glideType: state.glideType,
+				skirtHeight: state.skirtHeight,
+				undermountGlideHeight: state.undermountGlideHeight,
+				materialThickness: state.cabinetThickness,
+			});
+
+			renderBreakdown(result, state);
+
+			const sideClearance = activeSideClearance(state);
+			const drawerBoxWidth = cabinetOpeningWidth - 2 * sideClearance;
+
+			if (interiorHeight <= 0) {
+				els.heightError.hidden = false;
+				els.heightError.textContent = `Interior height (${formatInches(interiorHeight)}) must be greater than zero. Increase the cabinet height, or reduce the toekick height / material thickness.`;
+			} else if (result.overflow > 0) {
+				els.heightError.hidden = false;
+				els.heightError.textContent = `Drawers and shelves exceed the interior cabinet height by ${formatInches(result.overflow)}. Reduce heights, gaps, or glide clearance to fit.`;
+			} else if (cabinetOpeningWidth <= 0) {
+				els.heightError.hidden = false;
+				els.heightError.textContent = `Cabinet opening width (${formatInches(cabinetOpeningWidth)}) must be greater than zero. Increase the cabinet width, or reduce the material thickness.`;
+			} else if (cabinetInteriorDepth <= 0) {
+				els.heightError.hidden = false;
+				els.heightError.textContent = `Cabinet interior depth (${formatInches(cabinetInteriorDepth)}) must be greater than zero. Increase the cabinet depth, or reduce the rear panel / material thickness.`;
+			} else if (drawerBoxWidth <= 0) {
+				els.heightError.hidden = false;
+				els.heightError.textContent = `Side clearance (${formatInches(sideClearance)} per side) leaves no room for a drawer box at this cabinet opening width. Reduce clearance or increase the cabinet width.`;
+			} else {
+				els.heightError.hidden = true;
+			}
+
+			const warnings = [];
+			if (state.glideType === 'side-mount') {
+				result.breakdown.filter(e => e.type === 'drawer').forEach(entry => {
+					if (entry.drawerBoxHeight < state.sideMountGlideHeight) {
+						warnings.push(`Drawer ${entry.index + 1} box height (${formatInches(entry.drawerBoxHeight)}) is shorter than the typical side-mount slide height (${formatInches(state.sideMountGlideHeight)}) — check slide compatibility.`);
+					}
+				});
+			}
+			if (state.glideType === 'undermount' && state.cabinetThickness === 0.75) {
+				warnings.push(`Undermount glides are typically only available for 1/2" and 5/8" cabinet material — 3/4" cabinet sides may not leave enough room for standard undermount slides.`);
+			}
+			if (warnings.length) {
+				els.heightWarning.hidden = false;
+				els.heightWarning.textContent = warnings.join(' ');
+			} else {
+				els.heightWarning.hidden = true;
+			}
+
+			renderSlideLengthOptions();
+			const auto = bestFitSlideLength(cabinetInteriorDepth, state.glideType);
+			const slideLength = state.slideLength != null
+				? state.slideLength
+				: (auto != null ? auto : Math.min(...SLIDE_LENGTHS[state.glideType]));
+
+			if (interiorHeight <= 0) {
+				renderDiagramMessage('Fix the interior height issue above to see the diagram.');
+				els.cutListContainer.innerHTML = '';
+			} else if (result.overflow > 0) {
+				renderDiagramMessage('Fix the height overflow above to see the diagram.');
+				els.cutListContainer.innerHTML = '';
+			} else if (cabinetOpeningWidth <= 0) {
+				renderDiagramMessage('Fix the cabinet width / material thickness issue above to see the diagram.');
+				els.cutListContainer.innerHTML = '';
+			} else if (cabinetInteriorDepth <= 0) {
+				renderDiagramMessage('Fix the cabinet depth / rear panel issue above to see the diagram.');
+				els.cutListContainer.innerHTML = '';
+			} else if (drawerBoxWidth <= 0) {
+				renderDiagramMessage('Fix the side clearance / width issue above to see the diagram.');
+				els.cutListContainer.innerHTML = '';
+			} else {
+				renderDiagram(state, result, drawerBoxWidth, slideLength);
+				renderCutList(state, result, drawerBoxWidth, slideLength);
+			}
+
+			history.replaceState(null, '', '?' + stateToQueryString(state));
+		}
+
+		// ---- Event wiring ----
+
+		function bindSelect(el, stateKey) {
+			el.addEventListener('change', () => {
+				state[stateKey] = parseFloat(el.value);
+				recalculate();
+			});
+		}
+
+		initFractionInput('cabinetHeight', 96);
+		initFractionInput('cabinetWidth', 60);
+		initFractionInput('cabinetDepth', 36);
+		initFractionInput('toekickHeight', 8);
+		initFractionInput('toekickDepth', 8);
+		initFractionInput('sideClearance', 4);
+		initFractionInput('sideMountGlideHeight', 6);
+		initFractionInput('undermountGlideHeight', 4);
+		initFractionInput('stretcherWidth', 8);
+		initFractionInput('skirtHeight', 4);
+
+		bindFractionInput('cabinetHeight', (v) => { state.cabinetHeight = v; recalculate(); });
+		bindFractionInput('cabinetWidth', (v) => { state.cabinetWidth = v; recalculate(); });
+		bindFractionInput('cabinetDepth', (v) => { state.cabinetDepth = v; recalculate(); });
+		bindFractionInput('toekickHeight', (v) => { state.toekickHeight = v; recalculate(); });
+		bindFractionInput('toekickDepth', (v) => { state.toekickDepth = v; recalculate(); });
+		bindFractionInput('sideMountGlideHeight', (v) => { state.sideMountGlideHeight = v; recalculate(); });
+		bindFractionInput('undermountGlideHeight', (v) => { state.undermountGlideHeight = v; recalculate(); });
+		bindFractionInput('stretcherWidth', (v) => { state.stretcherWidth = v; recalculate(); });
+		bindFractionInput('skirtHeight', (v) => { state.skirtHeight = v; recalculate(); });
+
+		els.cabinetThickness.addEventListener('change', () => {
+			state.cabinetThickness = parseFloat(els.cabinetThickness.value);
+			syncDadoDepthOptions();
+			recalculate();
+		});
+
+		bindSelect(els.drawerGap, 'drawerGap');
+		bindSelect(els.rearPanelThickness, 'rearPanelThickness');
+		bindSelect(els.doorThickness, 'doorThickness');
+		bindSelect(els.faceFrameThickness, 'faceFrameThickness');
+		bindSelect(els.bottomPanelThickness, 'bottomPanelThickness');
+		bindSelect(els.bottomDadoDepth, 'bottomDadoDepth');
+		bindSelect(els.backPanelDadoDepth, 'backPanelDadoDepth');
+
+		els.boxMaterialThickness.addEventListener('change', () => {
+			state.boxMaterialThickness = parseFloat(els.boxMaterialThickness.value);
+			syncDrawerDadoDepthOptions();
+			recalculate();
+		});
+
+		els.drawerDadoDepth.addEventListener('change', () => {
+			state.drawerDadoDepth = parseFloat(els.drawerDadoDepth.value);
+			recalculate();
+		});
+
+		bindFractionInput('sideClearance', (v) => {
+			if (state.glideType === 'undermount') {
+				state.sideClearanceUndermount = v;
+			} else {
+				state.sideClearanceSideMount = v;
+			}
+			recalculate();
+		});
+
+		els.slideLength.addEventListener('change', () => {
+			state.slideLength = els.slideLength.value === '' ? null : parseFloat(els.slideLength.value);
+			recalculate();
+		});
+
+		els.glideType.querySelectorAll('.segmented-option').forEach(btn => {
+			btn.addEventListener('click', () => {
+				state.glideType = btn.dataset.value;
+				applyStateToForm();
+				recalculate();
+			});
+		});
+
+		els.cabinetStyle.querySelectorAll('.segmented-option').forEach(btn => {
+			btn.addEventListener('click', () => {
+				state.cabinetStyle = btn.dataset.value;
+				applyStateToForm();
+				recalculate();
+			});
+		});
+
+		document.querySelectorAll('.info-tooltip-btn').forEach(btn => {
+			btn.addEventListener('click', () => {
+				const target = document.getElementById(btn.dataset.tooltip);
+				if (!target) return;
+				target.hidden = !target.hidden;
+				btn.classList.toggle('active', !target.hidden);
+			});
+		});
+
+		document.querySelectorAll('.tool-preset-btn').forEach(btn => {
+			btn.addEventListener('click', () => {
+				const preset = PRESETS[btn.dataset.preset];
+				if (!preset) return;
+				Object.assign(state, preset);
+				applyStateToForm();
+				recalculate();
+			});
+		});
+
+		els.addDrawerBtn.addEventListener('click', () => {
+			state.items.push({ type: 'drawer', height: 4 });
+			renderDrawerRows();
+			recalculate();
+		});
+
+		els.shareBtn.addEventListener('click', () => {
+			navigator.clipboard.writeText(window.location.href).then(() => {
+				const notif = document.getElementById('copy-notification');
+				notif.classList.add('visible');
+				setTimeout(() => notif.classList.remove('visible'), 2000);
+			});
+		});
+
+		// ---- Init ----
+
+		applyStateToForm();
+		recalculate();
+
+	</script>
+
+</body>
+
+</html>

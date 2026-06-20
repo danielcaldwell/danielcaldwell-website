@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Tools — Daniel Caldwell</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="site.css" rel="stylesheet" type="text/css">
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
+</head>
+
+<body>
+
+	<div class="container">
+		<nav class="breadcrumb"><a href="index.html">← Home</a></nav>
+
+		<div class="tool-list">
+			<a class="tool-card" href="drawer-spacing-calculator.html">
+				<div class="tool-card-title">Drawer Spacing Calculator</div>
+				<div class="tool-card-description">Lay out drawer heights for a cabinet opening, account for toekick, depth, and slide glide clearances, and generate a cut list.</div>
+			</a>
+			<a class="tool-card" href="feet_inches_calculator.html">
+				<div class="tool-card-title">Feet &amp; Inches Calculator</div>
+				<div class="tool-card-description">Add or subtract feet-and-inch measurements, divide a length into equal spaces, or lay out on-center marks — with fractional inch, feet/inch, and centimeter results.</div>
+			</a>
+		</div>
+	</div>
+
+</body>
+
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Feet &amp; Inches Calculator — Daniel Caldwell</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="site.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
+</head>
+
+<body>
+
+	<div class="container tool-container">
+		<nav class="breadcrumb"><a href="tools.html">← Tools</a></nav>
+
+		<h1 class="tool-title">Feet &amp; Inches Calculator</h1>
+
+		<div class="tool-layout">
+
+			<form class="tool-panel" id="calcForm">
+
+				<section class="tool-section">
+					<h2>Operation</h2>
+					<div class="segmented-control" id="operationControl" role="group" aria-label="Operation">
+						<button type="button" class="segmented-option active" data-op="add">Add</button>
+						<button type="button" class="segmented-option" data-op="subtract">Subtract</button>
+						<button type="button" class="segmented-option" data-op="equal">Equal Spacing</button>
+						<button type="button" class="segmented-option" data-op="oncenter">On-Center</button>
+					</div>
+					<p class="tool-caption" id="opCaption"></p>
+				</section>
+
+				<section class="tool-section">
+					<h2 id="measureAHeading">First Measurement</h2>
+					<div class="measure-group" data-measure="a">
+						<div class="measure-sub">
+							<label for="aFeet">Feet</label>
+							<input type="number" id="aFeet" min="0" step="1" value="0" inputmode="numeric">
+						</div>
+						<div class="measure-sub">
+							<label for="aInches">Inches</label>
+							<input type="number" id="aInches" min="0" step="1" value="0" inputmode="numeric">
+						</div>
+						<div class="measure-sub">
+							<label for="aFrac">Fraction</label>
+							<select id="aFrac" class="frac-select"></select>
+						</div>
+					</div>
+				</section>
+
+				<section class="tool-section" id="measureBSection">
+					<h2>Second Measurement</h2>
+					<div class="measure-group" data-measure="b">
+						<div class="measure-sub">
+							<label for="bFeet">Feet</label>
+							<input type="number" id="bFeet" min="0" step="1" value="0" inputmode="numeric">
+						</div>
+						<div class="measure-sub">
+							<label for="bInches">Inches</label>
+							<input type="number" id="bInches" min="0" step="1" value="0" inputmode="numeric">
+						</div>
+						<div class="measure-sub">
+							<label for="bFrac">Fraction</label>
+							<select id="bFrac" class="frac-select"></select>
+						</div>
+					</div>
+				</section>
+
+				<section class="tool-section" id="spacesSection" hidden>
+					<h2>
+						Number of Spaces
+						<button type="button" class="info-tooltip-btn" data-tooltip="spaces-info" aria-label="Number of spaces info"><i class="fas fa-circle-info"></i></button>
+					</h2>
+					<div class="tool-field">
+						<input type="number" id="spaces" min="1" step="1" value="3" inputmode="numeric">
+						<div class="info-tooltip" id="spaces-info" hidden>
+							The total length is split into this many equal spaces. To place N evenly-spaced objects between two ends, use N + 1 spaces — e.g. 2 lights on a 24 ft wall = 3 spaces, giving marks at 0, 8, 16, and 24 ft.
+						</div>
+					</div>
+				</section>
+
+				<section class="tool-section" id="oncenterSection" hidden>
+					<h2>
+						On-Center Spacing
+						<button type="button" class="info-tooltip-btn" data-tooltip="oncenter-info" aria-label="On-center spacing info"><i class="fas fa-circle-info"></i></button>
+					</h2>
+					<div class="measure-group" data-measure="oc">
+						<div class="measure-sub">
+							<label for="ocFeet">Feet</label>
+							<input type="number" id="ocFeet" min="0" step="1" value="0" inputmode="numeric">
+						</div>
+						<div class="measure-sub">
+							<label for="ocInches">Inches</label>
+							<input type="number" id="ocInches" min="0" step="1" value="16" inputmode="numeric">
+						</div>
+						<div class="measure-sub">
+							<label for="ocFrac">Fraction</label>
+							<select id="ocFrac" class="frac-select"></select>
+						</div>
+					</div>
+					<div class="info-tooltip" id="oncenter-info" hidden>
+						Marks are laid out at this fixed interval from the start. The end of the run is always added as a final mark, even if the last interval is short. Common framing spacings are 16, 19 3/16 (19.2), and 24 inches on-center.
+					</div>
+				</section>
+
+			</form>
+
+			<div class="tool-panel" id="resultPanel">
+				<section class="tool-section">
+					<h2 id="resultHeading">Result</h2>
+					<div class="tool-error" id="errorMsg" hidden></div>
+					<div id="resultContent"></div>
+				</section>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		const INCHES_PER_FOOT = 12;
+		const CM_PER_INCH = 2.54;
+
+		// ----- Fraction input options (1/16 increments) -----
+		const FRACTION_STEPS = 16;
+
+		const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+
+		const populateFractionSelects = () => {
+			const buildOptions = () => {
+				const options = [];
+				for (let n = 0; n < FRACTION_STEPS; n++) {
+					const value = n / FRACTION_STEPS;
+					let label = '0';
+					if (n > 0) {
+						const divisor = gcd(n, FRACTION_STEPS);
+						label = `${n / divisor}/${FRACTION_STEPS / divisor}`;
+					}
+					options.push(`<option value="${value}">${label}</option>`);
+				}
+				return options.join('');
+			};
+			const html = buildOptions();
+			document.querySelectorAll('.frac-select').forEach((select) => {
+				select.innerHTML = html;
+			});
+		};
+
+		// ----- Conversion + formatting -----
+		const toDecimalInches = (feet, inches, frac) =>
+			feet * INCHES_PER_FOOT + inches + frac;
+
+		// Round to the nearest 1/32" and break into whole + reduced fraction.
+		const toThirtySecondParts = (totalInches) => {
+			const rounded = Math.round(Math.abs(totalInches) * 32) / 32;
+			const whole = Math.floor(rounded);
+			let numerator = Math.round((rounded - whole) * 32);
+			let denominator = 32;
+			if (numerator > 0) {
+				const divisor = gcd(numerator, denominator);
+				numerator /= divisor;
+				denominator /= divisor;
+			}
+			return { whole, numerator, denominator };
+		};
+
+		const fractionText = ({ whole, numerator, denominator }) => {
+			if (numerator === 0) return `${whole}`;
+			if (whole === 0) return `${numerator}/${denominator}`;
+			return `${whole} ${numerator}/${denominator}`;
+		};
+
+		const formatInches = (totalInches) => {
+			const sign = totalInches < 0 ? '-' : '';
+			return `${sign}${fractionText(toThirtySecondParts(totalInches))} in`;
+		};
+
+		const formatFeetInches = (totalInches) => {
+			const sign = totalInches < 0 ? '-' : '';
+			const rounded = Math.round(Math.abs(totalInches) * 32) / 32;
+			const feet = Math.floor(rounded / INCHES_PER_FOOT);
+			const remainder = rounded - feet * INCHES_PER_FOOT;
+			const parts = toThirtySecondParts(remainder);
+
+			let result = '';
+			if (feet > 0) result += `${feet} ft`;
+			if (parts.whole > 0 || parts.numerator > 0) {
+				if (result) result += ' ';
+				result += `${fractionText(parts)} in`;
+			}
+			if (!result) result = '0 in';
+			return `${sign}${result}`;
+		};
+
+		const formatCm = (totalInches) =>
+			`${(totalInches * CM_PER_INCH).toFixed(2)} cm`;
+
+		// ----- Reading inputs -----
+		const num = (id) => parseFloat(document.getElementById(id).value) || 0;
+
+		const readMeasure = (prefix) =>
+			toDecimalInches(num(`${prefix}Feet`), num(`${prefix}Inches`), num(`${prefix}Frac`));
+
+		// ----- Rendering helpers -----
+		const breakdownRows = (totalInches) => `
+			<div class="tool-breakdown">
+				<div class="tool-breakdown-row"><span>Inches</span><span>${formatInches(totalInches)}</span></div>
+				<div class="tool-breakdown-row"><span>Feet &amp; Inches</span><span>${formatFeetInches(totalInches)}</span></div>
+				<div class="tool-breakdown-row"><span>Centimeters</span><span>${formatCm(totalInches)}</span></div>
+			</div>`;
+
+		const markTable = (marks) => {
+			const rows = marks.map((mark) => `
+				<tr>
+					<td>${mark.label}</td>
+					<td>${formatInches(mark.position)}</td>
+					<td>${formatFeetInches(mark.position)}</td>
+					<td>${formatCm(mark.position)}</td>
+				</tr>`).join('');
+			return `
+				<div class="tool-table-wrapper">
+					<table class="cut-list-table">
+						<caption>Layout marks (measured from the start)</caption>
+						<thead>
+							<tr>
+								<th>Mark</th>
+								<th>Inches</th>
+								<th>Feet / Inches</th>
+								<th>Centimeters</th>
+							</tr>
+						</thead>
+						<tbody>${rows}</tbody>
+					</table>
+				</div>`;
+		};
+
+		// ----- Operations -----
+		const renderAddSubtract = (operation) => {
+			const a = readMeasure('a');
+			const b = readMeasure('b');
+			const total = operation === 'add' ? a + b : a - b;
+			return { html: breakdownRows(total) };
+		};
+
+		const renderEqualSpacing = () => {
+			const total = readMeasure('a');
+			const spaces = Math.round(num('spaces'));
+			if (total <= 0) return { error: 'Enter a total length greater than zero.' };
+			if (spaces < 1) return { error: 'Number of spaces must be at least 1.' };
+
+			const interval = total / spaces;
+			const marks = [];
+			for (let i = 0; i <= spaces; i++) {
+				marks.push({ label: `${i}`, position: interval * i });
+			}
+			const summary = `
+				<div class="tool-readout">
+					Each space: <strong>${formatInches(interval)}</strong>
+					<span class="tool-readout-note">(${formatFeetInches(interval)})</span>
+				</div>`;
+			return { html: summary + markTable(marks) };
+		};
+
+		const renderOnCenter = () => {
+			const total = readMeasure('a');
+			const spacing = readMeasure('oc');
+			if (total <= 0) return { error: 'Enter a total length greater than zero.' };
+			if (spacing <= 0) return { error: 'Enter an on-center spacing greater than zero.' };
+			if (spacing > total) return { error: 'On-center spacing is larger than the total length.' };
+
+			const epsilon = 1 / 64;
+			const fullMarks = Math.floor(total / spacing + epsilon);
+			const marks = [];
+			for (let i = 0; i <= fullMarks; i++) {
+				marks.push({ label: `${i}`, position: spacing * i });
+			}
+
+			const leftover = total - fullMarks * spacing;
+			let summaryNote = '';
+			if (leftover > epsilon) {
+				marks.push({ label: 'End', position: total });
+				summaryNote = `
+					<div class="tool-readout">
+						Leftover after last full mark: <strong>${formatInches(leftover)}</strong>
+						<span class="tool-readout-note">(${formatFeetInches(leftover)})</span>
+					</div>`;
+			}
+
+			const summary = `
+				<div class="tool-readout">
+					Marks at <strong>${formatInches(spacing)}</strong> on-center:
+					<strong>${marks.length}</strong>
+				</div>`;
+			return { html: summary + summaryNote + markTable(marks) };
+		};
+
+		// ----- State + wiring -----
+		const operationConfig = {
+			add: {
+				heading: 'First Measurement',
+				caption: 'Add two measurements together.',
+				show: ['measureBSection'],
+				render: () => renderAddSubtract('add'),
+			},
+			subtract: {
+				heading: 'First Measurement',
+				caption: 'Subtract the second measurement from the first.',
+				show: ['measureBSection'],
+				render: () => renderAddSubtract('subtract'),
+			},
+			equal: {
+				heading: 'Total Length',
+				caption: 'Divide a length into equal spaces. Example: 2 evenly-spaced lights on a 24 ft wall = 3 spaces → marks at 0, 8, 16, 24 ft.',
+				show: ['spacesSection'],
+				render: renderEqualSpacing,
+			},
+			oncenter: {
+				heading: 'Total Length',
+				caption: 'Lay out marks at a fixed on-center interval. Example: a 10 ft wall with joists 16 in on-center → 0, 16, 32 … 112, and the 120 in end.',
+				show: ['oncenterSection'],
+				render: renderOnCenter,
+			},
+		};
+
+		let currentOperation = 'add';
+
+		const allSections = ['measureBSection', 'spacesSection', 'oncenterSection'];
+
+		const setOperation = (operation) => {
+			currentOperation = operation;
+			const config = operationConfig[operation];
+
+			document.querySelectorAll('#operationControl .segmented-option').forEach((btn) => {
+				btn.classList.toggle('active', btn.dataset.op === operation);
+			});
+
+			document.getElementById('measureAHeading').textContent = config.heading;
+			document.getElementById('opCaption').textContent = config.caption;
+
+			allSections.forEach((id) => {
+				document.getElementById(id).hidden = !config.show.includes(id);
+			});
+
+			calculate();
+		};
+
+		const calculate = () => {
+			const errorEl = document.getElementById('errorMsg');
+			const contentEl = document.getElementById('resultContent');
+			const result = operationConfig[currentOperation].render();
+
+			if (result.error) {
+				errorEl.textContent = result.error;
+				errorEl.hidden = false;
+				contentEl.innerHTML = '';
+				return;
+			}
+			errorEl.hidden = true;
+			contentEl.innerHTML = result.html;
+		};
+
+		// Info tooltips
+		document.querySelectorAll('.info-tooltip-btn').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const tooltip = document.getElementById(btn.dataset.tooltip);
+				const isHidden = tooltip.hidden;
+				tooltip.hidden = !isHidden;
+				btn.classList.toggle('active', isHidden);
+			});
+		});
+
+		document.getElementById('operationControl').addEventListener('click', (event) => {
+			const button = event.target.closest('.segmented-option');
+			if (button) setOperation(button.dataset.op);
+		});
+
+		document.getElementById('calcForm').addEventListener('input', calculate);
+
+		populateFractionSelects();
+		setOperation('add');
+	</script>
+
+</body>
+
+</html>

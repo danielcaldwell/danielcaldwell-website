@@ -7,6 +7,9 @@
     --fade-duration: 1s;
     --slider-knob: #ffffff;
     --artwork-label-budget: 14rem; /* container padding (4rem) + label height estimate (10rem) */
+    --tool-gap: 1rem;
+    --error-color: #c0392b;
+    --warning-color: #b8860b;
 }
 
 [data-theme="dark"] {
@@ -15,6 +18,8 @@
     --settings-bg: #2d2d2d;
     --settings-border: #404040;
     --border-color: #666666;
+    --error-color: #ff6b6b;
+    --warning-color: #f0c674;
 }
 
 * {
@@ -343,5 +348,453 @@ input:checked + .slider:before {
 
 .artwork-separator{
 	margin-bottom: 3rem;
+}
+
+/* Tool pages (drawer-spacing-calculator, etc.) */
+
+.tool-container {
+    align-items: stretch;
+    justify-content: flex-start;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.tool-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    align-self: flex-start;
+}
+
+.tool-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tool-gap);
+    width: 100%;
+    align-items: flex-start;
+}
+
+.tool-panel {
+    flex: 1 1 400px;
+    background-color: var(--settings-bg);
+    border: 2px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.tool-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.tool-section[hidden] {
+    display: none;
+}
+
+.tool-section h2 {
+    font-size: 1rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--settings-border);
+}
+
+.tool-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tool-field[hidden] {
+    display: none;
+}
+
+.tool-field label,
+.tool-field-label-text {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.tool-field input,
+.tool-field select {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    padding: 0.35rem 0.5rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    border-radius: 2px;
+}
+
+.fraction-input {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.fraction-input select {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.tool-readout {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.6rem;
+    background-color: var(--bg-color);
+    border: 1px solid var(--settings-border);
+}
+
+.tool-readout-note {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-left: 0.35rem;
+}
+
+.tool-presets {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tool-presets-label {
+    font-size: 0.8rem;
+    opacity: 0.75;
+}
+
+.tool-preset-btn,
+.tool-add-row-btn,
+.segmented-option {
+    font-family: inherit;
+}
+
+.tool-preset-btn {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.tool-preset-btn:hover {
+    background-color: var(--settings-border);
+}
+
+.info-tooltip-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    opacity: 0.5;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+    line-height: 1;
+    transition: opacity 0.2s;
+}
+
+.info-tooltip-btn:hover,
+.info-tooltip-btn.active {
+    opacity: 1;
+}
+
+.info-tooltip {
+    font-size: 0.8rem;
+    background-color: var(--bg-color);
+    border: 1px solid var(--settings-border);
+    padding: 0.5rem 0.6rem;
+    border-radius: 2px;
+    line-height: 1.4;
+}
+
+.info-tooltip[hidden] {
+    display: none;
+}
+
+.segmented-control {
+    display: flex;
+    border: 2px solid var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+    width: fit-content;
+}
+
+.segmented-option {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-right: 1px solid var(--border-color);
+}
+
+.segmented-option:last-child {
+    border-right: none;
+}
+
+.segmented-option.active {
+    background-color: var(--border-color);
+    color: var(--bg-color);
+}
+
+.measure-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.measure-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1 1 5rem;
+    min-width: 4rem;
+}
+
+.measure-sub label {
+    font-size: 0.75rem;
+    opacity: 0.75;
+}
+
+.measure-sub input,
+.measure-sub select {
+    width: 100%;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    padding: 0.35rem 0.5rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    border-radius: 2px;
+}
+
+.tool-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.drawer-rows-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.drawer-rows-table th,
+.drawer-rows-table td {
+    padding: 0.25rem;
+    text-align: left;
+}
+
+.drawer-rows-table input,
+.drawer-rows-table select {
+    width: 100%;
+}
+
+.drawer-rows-table .fraction-input {
+    min-width: 7rem;
+}
+
+.drawer-rows-table .fraction-input.fraction-input-disabled {
+    opacity: 0.4;
+}
+
+.drawer-rows-table input[type="checkbox"] {
+    width: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.tool-add-row-btn {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 2px;
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.tool-add-row-btn:hover {
+    background-color: var(--settings-border);
+}
+
+.tool-remove-row-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 0.85rem;
+    opacity: 0.4;
+    padding: 0.2rem;
+    line-height: 1;
+    transition: opacity 0.2s;
+}
+
+.tool-remove-row-btn:hover {
+    opacity: 1;
+}
+
+.tool-remove-row-btn:disabled {
+    opacity: 0.15;
+    cursor: not-allowed;
+}
+
+.tool-breakdown {
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.tool-breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.2rem 0;
+    border-bottom: 1px solid var(--settings-border);
+    gap: 1rem;
+}
+
+.tool-breakdown-row:last-child {
+    border-bottom: none;
+}
+
+.tool-breakdown-row.tool-breakdown-gap {
+    opacity: 0.6;
+    font-size: 0.8rem;
+}
+
+.tool-breakdown-row.tool-breakdown-max {
+    font-style: italic;
+    opacity: 0.85;
+}
+
+.tool-error,
+.tool-warning {
+    font-weight: bold;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 2px;
+    line-height: 1.4;
+}
+
+.tool-error {
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
+}
+
+.tool-warning {
+    color: var(--warning-color);
+    border: 1px solid var(--warning-color);
+}
+
+.tool-error[hidden],
+.tool-warning[hidden] {
+    display: none;
+}
+
+.diagram-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.cabinet-diagram {
+    width: 100%;
+    max-height: 60vh;
+    height: auto;
+}
+
+.diagram-message {
+    font-size: 0.9rem;
+    opacity: 0.75;
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.cut-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.cut-list-table caption {
+    text-align: left;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.cut-list-table th,
+.cut-list-table td {
+    border: 1px solid var(--settings-border);
+    padding: 0.35rem 0.5rem;
+    text-align: left;
+}
+
+.cut-list-table th {
+    background-color: var(--bg-color);
+}
+
+.tool-caption {
+    font-size: 0.8rem;
+    opacity: 0.75;
+    line-height: 1.4;
+}
+
+.tool-share-btn {
+    align-self: flex-end;
+}
+
+.tool-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 600px;
+    width: 100%;
+    margin: auto;
+}
+
+.tool-card {
+    display: block;
+    border: 2px solid var(--border-color);
+    background-color: var(--settings-bg);
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: var(--text-color);
+    transition: background-color 0.3s;
+}
+
+.tool-card:hover {
+    background-color: var(--settings-border);
+}
+
+.tool-card-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.tool-card-description {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+@media (max-width: 800px) {
+    .tool-layout {
+        flex-direction: column;
+    }
+
+    .tool-panel {
+        flex: 1 1 auto;
+        width: 100%;
+    }
 }
 
