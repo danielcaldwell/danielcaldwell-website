@@ -1178,6 +1178,58 @@ input:checked + .slider:before {
     text-align: right;
 }
 
+.sm-timeline {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+}
+
+.sm-tl-event {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.3rem 0;
+}
+
+.sm-tl-name {
+    font-weight: bold;
+}
+
+.sm-tl-time {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.sm-tl-next {
+    font-size: 0.7rem;
+    font-weight: normal;
+    opacity: 0.55;
+    margin-left: 0.4rem;
+}
+
+.sm-tl-seg {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-left: 0.4rem;
+    padding: 0.15rem 0 0.15rem 0.85rem;
+    border-left: 2px dotted var(--settings-border);
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
+.sm-tl-band {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.sm-tl-dur {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 @media (max-width: 800px) {
     .tool-layout {
         flex-direction: column;

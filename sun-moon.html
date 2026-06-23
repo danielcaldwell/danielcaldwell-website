@@ -50,13 +50,9 @@
 
 				<div id="factSections" hidden>
 					<section class="tool-section">
-						<h2>Sun</h2>
-						<div class="tool-breakdown" id="sunFacts"></div>
-					</section>
-
-					<section class="tool-section">
-						<h2>Twilight</h2>
-						<div class="tool-breakdown" id="twilightFacts"></div>
+						<h2>Today &amp; Tonight</h2>
+						<div class="sm-timeline" id="timeline"></div>
+						<p class="tool-caption" id="timelineNote"></p>
 					</section>
 
 					<section class="tool-section">
@@ -186,7 +182,7 @@
 			const mins = Math.round(ms / 60000);
 			const h = Math.floor(mins / 60);
 			const m = mins % 60;
-			return `${h}h ${String(m).padStart(2, '0')}m`;
+			return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`;
 		};
 
 		const fmtSignedHMS = (sec) => {
@@ -310,6 +306,95 @@
 			}
 			segs.push({ cls: prev, start, end: 1440 });
 			return segs;
+		};
+
+		// Human labels for each band in the chronological timeline.
+		const BAND_LABEL = { day: 'Daylight', civil: 'Civil twilight', nautical: 'Nautical twilight', astro: 'Astronomical twilight', night: 'Night' };
+
+		// A continuous timeline from the selected day's sunrise to the next day's
+		// sunrise. Every event and band is always shown in order — phases that never
+		// happen on a given date (e.g. true night in midsummer) render as "—" rather
+		// than vanishing, so the ladder stays intact. Daylight and night also carry
+		// their change vs. the previous day, like the old day-length row.
+		const buildTimeline = (selDate, lat, lon) => {
+			const y = selDate.getFullYear(), mo = selDate.getMonth(), d = selDate.getDate();
+			const t0 = SunCalc.getTimes(new Date(y, mo, d, 12), lat, lon);
+			const t1 = SunCalc.getTimes(new Date(y, mo, d + 1, 12), lat, lon);
+			const tPrev = SunCalc.getTimes(new Date(y, mo, d - 1, 12), lat, lon);
+			const nextDayStart = new Date(y, mo, d + 1);
+
+			// Day-over-day change for the two headline spans.
+			const span = (a, b) => (isValid(a) && isValid(b) && b > a) ? (b - a) : 0;
+			const dayMs = span(t0.sunrise, t0.sunset), prevDayMs = span(tPrev.sunrise, tPrev.sunset);
+			const nightMs = span(t0.night, t1.nightEnd), prevNightMs = span(tPrev.night, t0.nightEnd);
+			const dayDelta = (dayMs && prevDayMs) ? (dayMs - prevDayMs) / 1000 : null;
+			const nightDelta = (nightMs && prevNightMs) ? (nightMs - prevNightMs) / 1000 : null;
+
+			if (!isValid(t0.sunrise) || !isValid(t0.sunset)) {
+				const noonAlt = SunCalc.getPosition(new Date(y, mo, d, 12), lat, lon).altitude * DEG;
+				const word = noonAlt > -0.833 ? 'above' : 'below';
+				return { html: `<div class="sm-tl-event"><span class="sm-tl-name sm-muted">The sun stays ${word} the horizon all day — no rise or set on this date.</span></div>`, note: '' };
+			}
+
+			// Band durations. A band the sun fully passes through has separate evening
+			// and morning halves; the band that holds the bottom of the night (the
+			// nadir) is one continuous span (its lower threshold is never crossed) and
+			// is shown once as a combined total; bands deeper than that never occur.
+			const ORDER = ['day', 'civil', 'nautical', 'astro', 'night'];
+			const nadirIdx = ORDER.indexOf(classifySun(SunCalc.getPosition(t1.nadir, lat, lon).altitude * DEG));
+			// half: 'eve' | 'morn'. Returns ms, or null to drop the row entirely
+			// (the redundant second half of a combined / non-occurring band).
+			const bandDur = (cls, half, eve, morn, comb) => {
+				const i = ORDER.indexOf(cls);
+				if (i < nadirIdx) return half === 'morn' ? morn : eve; // passed through: real half
+				if (i === nadirIdx) return half === 'eve' ? comb : null; // nadir: combined, drop morn
+				return half === 'eve' ? 0 : null; // deeper than nadir: show "—" once
+			};
+
+			// Fixed scaffold — every event always rendered (placeholder "—" when it
+			// doesn't occur); band rows carry the durations above (null = skipped).
+			const items = [
+				{ name: 'Sunrise', icon: '🌅 ', time: t0.sunrise },
+				{ seg: 'day', dur: dayMs, delta: dayDelta },
+				{ name: 'Sunset', icon: '🌇 ', time: t0.sunset },
+				{ seg: 'civil', dur: bandDur('civil', 'eve', span(t0.sunset, t0.dusk), 0, span(t0.sunset, t1.sunrise)) },
+				{ name: 'Civil dusk', time: t0.dusk },
+				{ seg: 'nautical', dur: bandDur('nautical', 'eve', span(t0.dusk, t0.nauticalDusk), 0, span(t0.dusk, t1.dawn)) },
+				{ name: 'Nautical dusk', time: t0.nauticalDusk },
+				{ seg: 'astro', dur: bandDur('astro', 'eve', span(t0.nauticalDusk, t0.night), 0, span(t0.nauticalDusk, t1.nauticalDawn)) },
+				{ name: 'Astronomical dusk · night begins', time: t0.night },
+				{ seg: 'night', dur: bandDur('night', 'eve', nightMs, 0, nightMs), delta: nightDelta },
+				{ name: 'Astronomical dawn · night ends', time: t1.nightEnd },
+				{ seg: 'astro', dur: bandDur('astro', 'morn', 0, span(t1.nightEnd, t1.nauticalDawn), 0) },
+				{ name: 'Nautical dawn', time: t1.nauticalDawn },
+				{ seg: 'nautical', dur: bandDur('nautical', 'morn', 0, span(t1.nauticalDawn, t1.dawn), 0) },
+				{ name: 'Civil dawn', time: t1.dawn },
+				{ seg: 'civil', dur: bandDur('civil', 'morn', 0, span(t1.dawn, t1.sunrise), 0) },
+				{ name: 'Sunrise', icon: '🌅 ', time: t1.sunrise }
+			];
+
+			let html = '';
+			for (const it of items) {
+				if (it.seg) {
+					if (it.dur === null) continue;
+					const deltaHtml = (it.delta === null || it.delta === undefined) ? '' : ` <span class="sm-muted">(${fmtSignedHMS(it.delta)})</span>`;
+					html += `<div class="sm-tl-seg">`
+						+ `<span class="sm-tl-band"><span class="sm-swatch" style="background:${BANDS[it.seg].color}"></span>${BAND_LABEL[it.seg]}${deltaHtml}</span>`
+						+ `<span class="sm-tl-dur">${fmtHM(it.dur)}</span>`
+						+ `</div>`;
+				} else {
+					const isNext = isValid(it.time) && it.time >= nextDayStart;
+					html += `<div class="sm-tl-event">`
+						+ `<span class="sm-tl-name">${it.icon || ''}${esc(it.name)}</span>`
+						+ `<span class="sm-tl-time">${fmtTime(it.time)}${isNext ? '<span class="sm-tl-next">next day</span>' : ''}</span>`
+						+ `</div>`;
+				}
+			}
+
+			const noteParts = [];
+			if (isValid(t0.solarNoon)) noteParts.push(`Solar noon ${fmtTime(t0.solarNoon)}.`);
+			if (dayDelta !== null || nightDelta !== null) noteParts.push('Daylight and night show the change vs. the previous day.');
+			return { html, note: noteParts.join(' ') };
 		};
 
 		const altSamples = (posFn, midnight, lat, lon, step = 8) => {
@@ -516,26 +601,11 @@
 
 			el('locLabel').innerHTML = `<strong>${esc(loc.label)}</strong> · ${lat.toFixed(3)}, ${lon.toFixed(3)}`;
 
-			// --- Sun facts ---
+			// --- Today & tonight timeline ---
 			const dayMs = (isValid(t.sunrise) && isValid(t.sunset)) ? (t.sunset - t.sunrise) : 0;
-			const prevT = SunCalc.getTimes(new Date(y, mo, d - 1, 12), lat, lon);
-			const prevMs = (isValid(prevT.sunrise) && isValid(prevT.sunset)) ? (prevT.sunset - prevT.sunrise) : 0;
-			const deltaSec = (dayMs && prevMs) ? (dayMs - prevMs) / 1000 : 0;
-			const trend = deltaSec === 0 ? '' : ` <span class="sm-muted">(${deltaSec > 0 ? 'gaining' : 'losing'})</span>`;
-			el('sunFacts').innerHTML = rows([
-				['Sunrise', `🌅 ${fmtTime(t.sunrise)}`],
-				['Solar noon', `☀️ ${fmtTime(t.solarNoon)}`],
-				['Sunset', `🌇 ${fmtTime(t.sunset)}`],
-				['Day length', fmtHM(dayMs)],
-				['Vs. yesterday', `${fmtSignedHMS(deltaSec)}${trend}`]
-			]);
-
-			// --- Twilight facts ---
-			el('twilightFacts').innerHTML = rows([
-				['Civil dawn / dusk', `${fmtTime(t.dawn)} · ${fmtTime(t.dusk)}`],
-				['Nautical dawn / dusk', `${fmtTime(t.nauticalDawn)} · ${fmtTime(t.nauticalDusk)}`],
-				['Astronomical dawn / dusk', `${fmtTime(t.nightEnd)} · ${fmtTime(t.night)}`]
-			]);
+			const tl = buildTimeline(selDate, lat, lon);
+			el('timeline').innerHTML = tl.html;
+			el('timelineNote').textContent = tl.note;
 
 			// --- Moon facts ---
 			const illum = SunCalc.getMoonIllumination(noon);
