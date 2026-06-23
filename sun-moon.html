@@ -200,6 +200,14 @@
 			return `${sign}${parts.join(' ')}`;
 		};
 
+		// Signed hours/minutes (seconds dropped) for season-scale daylight changes.
+		const fmtSignedSpan = (sec) => {
+			const sign = sec < 0 ? '−' : '+';
+			const mins = Math.round(Math.abs(sec) / 60);
+			if (mins < 60) return `${sign}${mins}m`;
+			return `${sign}${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
+		};
+
 		// ---------- Moon phase naming ----------
 		const MOON_EMOJI = {
 			'New Moon': '🌑', 'Waxing Crescent': '🌒', 'First Quarter': '🌓', 'Waxing Gibbous': '🌔',
@@ -679,25 +687,34 @@
 			]);
 
 			// --- Seasons ---
+			// Always the two markers behind and the two ahead (solstice + equinox each
+			// way), as an aligned table: season · date · days · daylight change vs. today.
 			const events = seasonEvents(selDate);
-			const lastEquinox = [...events].reverse().find((e) => e.kind === 'equinox' && e.date <= selDate);
-			const nextEquinox = events.find((e) => e.kind === 'equinox' && e.date > selDate);
-			const nextSolstice = events.find((e) => e.kind === 'solstice' && e.date > selDate);
-			const lastSolstice = [...events].reverse().find((e) => e.kind === 'solstice' && e.date <= selDate);
 			const daysBetween = (a, b) => Math.round((startOfDay(b) - startOfDay(a)) / 86400000);
-			const seasonRows = [];
-			if (lastEquinox) seasonRows.push([`Since ${seasonName(lastEquinox.k, lat)}`, `${daysBetween(lastEquinox.date, selDate)} days`]);
-			if (nextEquinox) seasonRows.push([`Until ${seasonName(nextEquinox.k, lat)}`, `${daysBetween(selDate, nextEquinox.date)} days (${fmtDateShort(nextEquinox.date)})`]);
-			if (nextSolstice) seasonRows.push([`Until ${seasonName(nextSolstice.k, lat)}`, `${daysBetween(selDate, nextSolstice.date)} days (${fmtDateShort(nextSolstice.date)})`]);
-			if (lastSolstice && dayMs) {
-				const solMidday = new Date(lastSolstice.date.getFullYear(), lastSolstice.date.getMonth(), lastSolstice.date.getDate(), 12);
-				const solT = SunCalc.getTimes(solMidday, lat, lon);
-				if (isValid(solT.sunrise) && isValid(solT.sunset)) {
-					const cumSec = (dayMs - (solT.sunset - solT.sunrise)) / 1000;
-					seasonRows.push([`Since ${seasonName(lastSolstice.k, lat)}`, `${fmtSignedHMS(cumSec)} of daylight`]);
-				}
-			}
-			el('seasonFacts').innerHTML = rows(seasonRows);
+			const daylightAt = (date) => {
+				const tt = SunCalc.getTimes(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12), lat, lon);
+				return (isValid(tt.sunrise) && isValid(tt.sunset)) ? (tt.sunset - tt.sunrise) : null;
+			};
+			const mdShort = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+			// One grid row of four cells; sign is +1 for past markers, −1 for upcoming,
+			// so both read as the daylight change moving toward that date.
+			const seasonCells = (e, dir) => {
+				const ms = daylightAt(e.date);
+				const days = dir === 'since' ? daysBetween(e.date, selDate) : daysBetween(selDate, e.date);
+				const daylight = (!dayMs || ms === null) ? '—' : fmtSignedSpan((dir === 'since' ? 1 : -1) * (dayMs - ms) / 1000);
+				return `<div class="sm-season-name">${dir === 'since' ? 'Since' : 'Until'} ${esc(seasonName(e.k, lat))}</div>`
+					+ `<div class="sm-season-date">${esc(mdShort(e.date))}</div>`
+					+ `<div class="sm-season-num">${days} days</div>`
+					+ `<div class="sm-season-num">${daylight}</div>`;
+			};
+			const since = events.filter((e) => e.date <= selDate).slice(-2).map((e) => seasonCells(e, 'since'));
+			const until = events.filter((e) => e.date > selDate).slice(0, 2).map((e) => seasonCells(e, 'until'));
+			const divider = since.length && until.length ? '<div class="sm-season-divider"></div>' : '';
+			const header = `<div class="sm-season-head">Season</div>`
+				+ `<div class="sm-season-head">Date</div>`
+				+ `<div class="sm-season-head sm-season-num">Days</div>`
+				+ `<div class="sm-season-head sm-season-num">Daylight ±</div>`;
+			el('seasonFacts').innerHTML = `<div class="sm-season-grid">${header}${since.join('')}${divider}${until.join('')}</div>`;
 
 			// --- Night darkness (selected night) ---
 			const ns = scoreNight(midnight, lat, lon);

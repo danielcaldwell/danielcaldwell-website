@@ -1160,6 +1160,46 @@ input:checked + .slider:before {
     min-height: 1.2em;
 }
 
+.sm-season-grid {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    column-gap: 0.85rem;
+    align-items: baseline;
+    font-size: 0.85rem;
+}
+
+.sm-season-grid > div {
+    padding: 0.18rem 0;
+}
+
+.sm-season-head {
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.6;
+    border-bottom: 1px solid var(--settings-border);
+    padding-bottom: 0.25rem !important;
+}
+
+.sm-season-date {
+    opacity: 0.8;
+    white-space: nowrap;
+}
+
+.sm-season-num {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.sm-season-divider {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--settings-border);
+    padding: 0 !important;
+    margin: 0.15rem 0;
+}
+
 .sm-legend {
     display: flex;
     flex-wrap: wrap;
