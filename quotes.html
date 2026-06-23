@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="site.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script>
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
@@ -16,8 +17,24 @@
 </head>
 <body>
     <script type="text/javascript" src="quotelist.js"></script>
+    <div class="site-nav">
+        <div class="settings-bar">
+            <button id="settingsButton" class="settings-button" aria-label="Menu"><i class="fas fa-bars"></i></button>
+            <div id="settingsMenu" class="settings-menu hidden">
+                <div class="settings-option">
+                    <label for="darkModeToggle">Dark Mode</label>
+                    <label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider round"></span></label>
+                </div>
+            </div>
+        </div>
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="index.html">Home</a>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">Quotes</span>
+        </nav>
+    </div>
+
     <div class="container">
-        <nav class="breadcrumb"><a href="index.html">← Home</a></nav>
         <div class="quote-list" id="quote-list"></div>
     </div>
     <script>
@@ -41,5 +58,6 @@
             list.appendChild(card);
         });
     </script>
+    <script src="nav.js"></script>
 </body>
 </html>
