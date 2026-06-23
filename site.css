@@ -1106,6 +1106,60 @@ input:checked + .slider:before {
     display: block;
 }
 
+.sm-bar-seg {
+    cursor: pointer;
+    transition: opacity 0.12s ease;
+}
+
+/* While hovering the bar, dim every band and spotlight the one under the cursor. */
+.sm-bar:hover .sm-bar-seg {
+    opacity: 0.35;
+}
+
+.sm-bar:hover .sm-bar-seg:hover {
+    opacity: 1;
+    stroke: var(--text-color);
+    stroke-width: 2;
+}
+
+.sm-bar-hover {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    line-height: 1.4;
+    margin-top: 0.4rem;
+    min-height: 1.2em;
+}
+
+.sm-bar-hover.is-active {
+    opacity: 1;
+    font-weight: bold;
+}
+
+.sm-alt {
+    cursor: crosshair;
+}
+
+.sm-alt-mark {
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
+}
+
+/* Dark "sky" disc (not theme-tinted) so the warm sun/moon glyphs stay legible
+   in light mode too, where a white disc washed them out. */
+.sm-alt-mark circle {
+    fill: #223049;
+    stroke: rgba(255, 255, 255, 0.55);
+    stroke-width: 1.5;
+}
+
+.sm-alt-time {
+    font-size: 0.85rem;
+    font-weight: bold;
+    line-height: 1.4;
+    margin-top: 0.4rem;
+    min-height: 1.2em;
+}
+
 .sm-legend {
     display: flex;
     flex-wrap: wrap;

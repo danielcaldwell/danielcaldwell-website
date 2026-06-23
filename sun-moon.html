@@ -78,12 +78,14 @@
 					<section class="tool-section">
 						<h2>Day &amp; Night</h2>
 						<div class="sm-chart" id="twilightChart"></div>
+						<div class="sm-bar-hover" id="twilightHover"></div>
 						<div class="sm-legend" id="twilightLegend"></div>
 					</section>
 
 					<section class="tool-section">
 						<h2>Sun &amp; Moon Altitude</h2>
 						<div class="sm-chart" id="altChart"></div>
+						<div class="sm-alt-time" id="altTime"></div>
 						<div class="sm-legend" id="altLegend"></div>
 					</section>
 
@@ -282,12 +284,14 @@
 		};
 
 		// ---------- Twilight band classification ----------
+		// Day is sun-gold; twilight then graduates light → dark blue into night.
+		// (Night keeps a navy rather than near-black so it stays visible in dark mode.)
 		const BANDS = {
-			day: { color: '#7ec8f0', label: 'Day' },
-			civil: { color: '#3f6fa3', label: 'Civil twilight' },
-			nautical: { color: '#274a73', label: 'Nautical twilight' },
-			astro: { color: '#16284a', label: 'Astronomical twilight' },
-			night: { color: '#0a1024', label: 'Night' }
+			day: { color: '#ffd24a', label: 'Day' },
+			civil: { color: '#7ec8f0', label: 'Civil twilight' },
+			nautical: { color: '#3f6fa3', label: 'Nautical twilight' },
+			astro: { color: '#274a73', label: 'Astronomical twilight' },
+			night: { color: '#16284a', label: 'Night' }
 		};
 		const classifySun = (alt) =>
 			alt > -0.833 ? 'day' : alt > -6 ? 'civil' : alt > -12 ? 'nautical' : alt > -18 ? 'astro' : 'night';
@@ -408,54 +412,109 @@
 		// ---------- SVG chart builders ----------
 		const hourLabel = (h) => (h % 24 === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`);
 
-		const buildTwilightBar = (segments) => {
+		const buildTwilightBar = (segments, midnight) => {
 			const W = 960, H = 30;
 			const rects = segments.map((s) => {
 				const x = (s.start / 1440) * W;
 				const w = ((s.end - s.start) / 1440) * W;
-				return `<rect x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${H}" fill="${BANDS[s.cls].color}"/>`;
+				const from = fmtTime(new Date(midnight.getTime() + s.start * 60000));
+				const to = fmtTime(new Date(midnight.getTime() + s.end * 60000));
+				const label = `${BANDS[s.cls].label} · ${from} – ${to} · ${fmtHM((s.end - s.start) * 60000)}`;
+				return `<rect class="sm-bar-seg" data-label="${esc(label)}" x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${H}" fill="${BANDS[s.cls].color}" vector-effect="non-scaling-stroke"/>`;
 			}).join('');
 			let ticks = '';
 			for (let h = 0; h <= 24; h += 6) {
 				const x = (h / 24) * W;
-				ticks += `<line x1="${x}" y1="${H}" x2="${x}" y2="${H + 4}" stroke="currentColor" opacity="0.5"/>`
-					+ `<text x="${x}" y="${H + 15}" font-size="11" fill="currentColor" text-anchor="middle" opacity="0.7">${hourLabel(h)}</text>`;
+				const anchor = h === 0 ? 'start' : h === 24 ? 'end' : 'middle';
+				ticks += `<line x1="${x}" y1="${H}" x2="${x}" y2="${H + 5}" stroke="currentColor" opacity="0.5"/>`
+					+ `<text x="${x}" y="${H + 22}" font-size="20" fill="currentColor" text-anchor="${anchor}" opacity="0.75">${hourLabel(h)}</text>`;
 			}
-			return `<svg viewBox="0 0 ${W} ${H + 20}" class="sm-svg" role="img" aria-label="Day, twilight and night across the day">${rects}${ticks}</svg>`;
+			return `<svg viewBox="0 0 ${W} ${H + 28}" class="sm-svg sm-bar" role="img" aria-label="Day, twilight and night across the day">${rects}${ticks}</svg>`;
 		};
 
+		// Shared geometry so the chart and the hover cursor map time/altitude the same.
+		const ALT = { W: 960, H: 300, mL: 54, mR: 16, mT: 10, mB: 34 };
+		ALT.pw = ALT.W - ALT.mL - ALT.mR;
+		ALT.ph = ALT.H - ALT.mT - ALT.mB;
+		const altX = (m) => ALT.mL + (m / 1440) * ALT.pw;
+		const altY = (a) => ALT.mT + (1 - (Math.max(-90, Math.min(90, a)) + 90) / 180) * ALT.ph;
+		// Orange so the sun stays legible over the gold daytime band (esp. light mode).
+		const SUN_LINE = '#ff6f00', MOON_LINE = '#cfd6e2';
+
 		const buildAltChart = (sunPts, moonPts, segments) => {
-			const W = 960, H = 300, mL = 34, mR = 10, mT = 8, mB = 22;
-			const pw = W - mL - mR, ph = H - mT - mB;
-			const X = (m) => mL + (m / 1440) * pw;
-			const Y = (a) => mT + (1 - (Math.max(-90, Math.min(90, a)) + 90) / 180) * ph;
-
+			const { W, H, mL, mR, mT, ph } = ALT;
 			const bands = segments.map((s) =>
-				`<rect x="${X(s.start).toFixed(1)}" y="${mT}" width="${(X(s.end) - X(s.start)).toFixed(1)}" height="${ph}" fill="${BANDS[s.cls].color}" opacity="0.6"/>`
+				`<rect x="${altX(s.start).toFixed(1)}" y="${mT}" width="${(altX(s.end) - altX(s.start)).toFixed(1)}" height="${ph}" fill="${BANDS[s.cls].color}" opacity="0.6"/>`
 			).join('');
 
-			const gridY = [60, 30, -30, -60].map((a) =>
-				`<line x1="${mL}" y1="${Y(a).toFixed(1)}" x2="${W - mR}" y2="${Y(a).toFixed(1)}" stroke="currentColor" stroke-opacity="0.12"/>`
-			).join('');
-			const horizon = `<line x1="${mL}" y1="${Y(0).toFixed(1)}" x2="${W - mR}" y2="${Y(0).toFixed(1)}" stroke="#ffffff" stroke-opacity="0.7" stroke-dasharray="5 3"/>`
-				+ `<text x="${mL - 4}" y="${(Y(0) + 4).toFixed(1)}" font-size="11" fill="currentColor" text-anchor="end" opacity="0.7">0°</text>`;
+			// Every altitude line gets a label; 0° doubles as the dashed horizon.
+			const gridY = [60, 30, 0, -30, -60].map((a) => {
+				const y = altY(a);
+				const lineAttr = a === 0
+					? `stroke="#ffffff" stroke-opacity="0.7" stroke-dasharray="5 3"`
+					: `stroke="currentColor" stroke-opacity="0.12"`;
+				return `<line x1="${mL}" y1="${y.toFixed(1)}" x2="${W - mR}" y2="${y.toFixed(1)}" ${lineAttr}/>`
+					+ `<text x="${mL - 8}" y="${(y + 6).toFixed(1)}" font-size="16" fill="currentColor" text-anchor="end" opacity="${a === 0 ? 0.8 : 0.55}">${a}°</text>`;
+			}).join('');
 
 			const line = (pts, color, w, dash) => {
-				const d = pts.map(([m, a]) => `${X(m).toFixed(1)},${Y(a).toFixed(1)}`).join(' ');
-				return `<polyline points="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linejoin="round"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
+				const d = pts.map(([m, a]) => `${altX(m).toFixed(1)},${altY(a).toFixed(1)}`).join(' ');
+				return `<polyline points="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linejoin="round" vector-effect="non-scaling-stroke"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
 			};
 
+			// Anchor the first/last labels inward so "12a" isn't clipped at the edges.
 			let xticks = '';
 			for (let h = 0; h <= 24; h += 6) {
-				const x = X(h * 60);
-				xticks += `<text x="${x.toFixed(1)}" y="${H - 6}" font-size="11" fill="currentColor" text-anchor="middle" opacity="0.7">${hourLabel(h)}</text>`;
+				const anchor = h === 0 ? 'start' : h === 24 ? 'end' : 'middle';
+				xticks += `<text x="${altX(h * 60).toFixed(1)}" y="${H - 10}" font-size="18" fill="currentColor" text-anchor="${anchor}" opacity="0.75">${hourLabel(h)}</text>`;
 			}
 
-			return `<svg viewBox="0 0 ${W} ${H}" class="sm-svg" role="img" aria-label="Sun and moon altitude over the day">`
-				+ bands + gridY + horizon
-				+ line(moonPts, '#dfe3ea', 1.8, '4 3')
-				+ line(sunPts, '#ffd24a', 2.6)
-				+ xticks + `</svg>`;
+			// Current-time cursor + sun/moon markers; positioned by updateAltCursor().
+			// Each glyph rides on a themed backing disc so it stays visible over the
+			// gold daytime band (where a bare emoji washes out).
+			const mark = (id, glyph, r, fs) =>
+				`<g id="${id}" class="sm-alt-mark"><circle r="${r}" vector-effect="non-scaling-stroke"/>`
+				+ `<text text-anchor="middle" dominant-baseline="central" font-size="${fs}">${glyph}</text></g>`;
+			const cursor = `<line id="altCursorLine" x1="0" y1="${mT}" x2="0" y2="${(mT + ph).toFixed(1)}" stroke="currentColor" stroke-opacity="0.4" vector-effect="non-scaling-stroke"/>`
+				+ mark('altMoonMark', '🌙', 15, 22)
+				+ mark('altSunMark', '☀️', 17, 26);
+
+			return `<svg viewBox="0 0 ${W} ${H}" class="sm-svg sm-alt" role="img" aria-label="Sun and moon altitude over the day">`
+				+ bands + gridY
+				+ line(moonPts, MOON_LINE, 2, '5 4')
+				+ line(sunPts, SUN_LINE, 3)
+				+ xticks + cursor + `</svg>`;
+		};
+
+		// Sun/moon marker state, refreshed each render; the cursor follows the mouse.
+		let altSun = null, altMoon = null, altMid = null;
+		const nowMinutes = () => { const n = new Date(); return (n - startOfDay(n)) / 60000; };
+		const interpAlt = (pts, m) => {
+			if (!pts || !pts.length) return 0;
+			if (m <= pts[0][0]) return pts[0][1];
+			const last = pts[pts.length - 1];
+			if (m >= last[0]) return last[1];
+			for (let i = 1; i < pts.length; i++) {
+				if (pts[i][0] >= m) {
+					const [m0, a0] = pts[i - 1], [m1, a1] = pts[i];
+					return a0 + (a1 - a0) * ((m - m0) / (m1 - m0));
+				}
+			}
+			return last[1];
+		};
+		const updateAltCursor = (m, isNow) => {
+			if (!altSun) return;
+			m = Math.max(0, Math.min(1440, m));
+			const x = altX(m).toFixed(1);
+			const sa = interpAlt(altSun, m), ma = interpAlt(altMoon, m);
+			const lineEl = document.getElementById('altCursorLine');
+			const sunEl = document.getElementById('altSunMark');
+			const moonEl = document.getElementById('altMoonMark');
+			if (!lineEl || !sunEl || !moonEl) return;
+			lineEl.setAttribute('x1', x); lineEl.setAttribute('x2', x);
+			sunEl.setAttribute('transform', `translate(${x}, ${altY(sa).toFixed(1)})`);
+			moonEl.setAttribute('transform', `translate(${x}, ${altY(ma).toFixed(1)})`);
+			el('altTime').textContent = `${isNow ? 'Now · ' : ''}${fmtTime(new Date(altMid.getTime() + m * 60000))} · ☀️ ${Math.round(sa)}° · 🌙 ${Math.round(ma)}°`;
 		};
 
 		// ---------- Night darkness scoring ----------
@@ -657,16 +716,18 @@
 
 			// --- Charts ---
 			const segments = sunSegments(midnight, lat, lon);
-			el('twilightChart').innerHTML = buildTwilightBar(segments);
+			el('twilightChart').innerHTML = buildTwilightBar(segments, midnight);
 			el('twilightLegend').innerHTML = Object.values(BANDS).map((b) =>
 				`<span class="sm-legend-item"><span class="sm-swatch" style="background:${b.color}"></span>${b.label}</span>`).join('');
 
 			const sunPts = altSamples((dt, la, lo) => SunCalc.getPosition(dt, la, lo), midnight, lat, lon);
 			const moonPts = altSamples((dt, la, lo) => SunCalc.getMoonPosition(dt, la, lo), midnight, lat, lon);
 			el('altChart').innerHTML = buildAltChart(sunPts, moonPts, segments);
+			altSun = sunPts; altMoon = moonPts; altMid = midnight;
+			updateAltCursor(nowMinutes(), true);
 			el('altLegend').innerHTML =
-				`<span class="sm-legend-item"><span class="sm-line" style="background:#ffd24a"></span>Sun</span>`
-				+ `<span class="sm-legend-item"><span class="sm-line sm-line-dash" style="background:#9aa3b2"></span>Moon</span>`;
+				`<span class="sm-legend-item"><span class="sm-line" style="background:${SUN_LINE}"></span>Sun</span>`
+				+ `<span class="sm-legend-item"><span class="sm-line sm-line-dash" style="background:${MOON_LINE}"></span>Moon</span>`;
 
 			// --- Darkest nights outlook (next 14 nights from real today) ---
 			const today = startOfDay(new Date());
@@ -686,6 +747,32 @@
 					<span class="sm-outlook-moon">${MOON_EMOJI[n.phase]} ${Math.round(n.illum * 100)}%</span>
 				</div>`).join('');
 		};
+
+		// ---------- Day & Night bar hover ----------
+		// Delegated so it survives re-renders; CSS handles the visual highlight,
+		// this just mirrors the hovered band's label into the caption.
+		const HOVER_HINT = 'Hover a band to see its time span.';
+		const twHover = el('twilightHover');
+		twHover.textContent = HOVER_HINT;
+		el('twilightChart').addEventListener('mouseover', (e) => {
+			const r = e.target.closest('[data-label]');
+			if (r) { twHover.textContent = r.getAttribute('data-label'); twHover.classList.add('is-active'); }
+		});
+		el('twilightChart').addEventListener('mouseleave', () => {
+			twHover.textContent = HOVER_HINT;
+			twHover.classList.remove('is-active');
+		});
+
+		// ---------- Altitude chart cursor (follows mouse, else current time) ----------
+		const altEl = el('altChart');
+		altEl.addEventListener('mousemove', (e) => {
+			const svg = altEl.querySelector('svg');
+			if (!svg) return;
+			const r = svg.getBoundingClientRect();
+			const vbx = ((e.clientX - r.left) / r.width) * ALT.W;
+			updateAltCursor(((vbx - ALT.mL) / ALT.pw) * 1440, false);
+		});
+		altEl.addEventListener('mouseleave', () => updateAltCursor(nowMinutes(), true));
 
 		// ---------- Init ----------
 		loc = loadLocation();
