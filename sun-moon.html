@@ -176,6 +176,7 @@
 		// ---------- Formatting ----------
 		const isValid = (d) => d instanceof Date && !isNaN(d);
 		const fmtTime = (d) => isValid(d) ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '—';
+		const fmtDayTime = (d) => isValid(d) ? d.toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '—';
 		const fmtDateLong = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 		const fmtDateShort = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
@@ -296,19 +297,19 @@
 		const classifySun = (alt) =>
 			alt > -0.833 ? 'day' : alt > -6 ? 'civil' : alt > -12 ? 'nautical' : alt > -18 ? 'astro' : 'night';
 
-		// Merge contiguous same-class minutes across the local day into segments.
-		const sunSegments = (midnight, lat, lon, step = 2) => {
+		// Merge contiguous same-class minutes from `from` over `totalMin` into segments.
+		const sunSegments = (from, lat, lon, totalMin = 1440, step = 2) => {
 			const segs = [];
-			let prev = null, start = 0;
-			for (let m = 0; m <= 1440; m += step) {
-				const alt = SunCalc.getPosition(new Date(midnight.getTime() + m * 60000), lat, lon).altitude * DEG;
+			let prev = null, segStart = 0;
+			for (let m = 0; m <= totalMin; m += step) {
+				const alt = SunCalc.getPosition(new Date(from.getTime() + m * 60000), lat, lon).altitude * DEG;
 				const cls = classifySun(alt);
 				if (cls !== prev) {
-					if (prev !== null) segs.push({ cls: prev, start, end: m });
-					prev = cls; start = m;
+					if (prev !== null) segs.push({ cls: prev, start: segStart, end: m });
+					prev = cls; segStart = m;
 				}
 			}
-			segs.push({ cls: prev, start, end: 1440 });
+			segs.push({ cls: prev, start: segStart, end: totalMin });
 			return segs;
 		};
 
@@ -412,24 +413,24 @@
 		// ---------- SVG chart builders ----------
 		const hourLabel = (h) => (h % 24 === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`);
 
-		const buildTwilightBar = (segments, midnight) => {
-			const W = 960, H = 30;
+		const buildTwilightBar = (segments, from, totalMin) => {
+			const W = 960, H = 30, totalHrs = totalMin / 60, startHour = from.getHours();
 			const rects = segments.map((s) => {
-				const x = (s.start / 1440) * W;
-				const w = ((s.end - s.start) / 1440) * W;
-				const from = fmtTime(new Date(midnight.getTime() + s.start * 60000));
-				const to = fmtTime(new Date(midnight.getTime() + s.end * 60000));
-				const label = `${BANDS[s.cls].label} · ${from} – ${to} · ${fmtHM((s.end - s.start) * 60000)}`;
+				const x = (s.start / totalMin) * W;
+				const w = ((s.end - s.start) / totalMin) * W;
+				const a = fmtDayTime(new Date(from.getTime() + s.start * 60000));
+				const b = fmtDayTime(new Date(from.getTime() + s.end * 60000));
+				const label = `${BANDS[s.cls].label} · ${a} – ${b} · ${fmtHM((s.end - s.start) * 60000)}`;
 				return `<rect class="sm-bar-seg" data-label="${esc(label)}" x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${H}" fill="${BANDS[s.cls].color}" vector-effect="non-scaling-stroke"/>`;
 			}).join('');
 			let ticks = '';
-			for (let h = 0; h <= 24; h += 6) {
-				const x = (h / 24) * W;
-				const anchor = h === 0 ? 'start' : h === 24 ? 'end' : 'middle';
+			for (let h = 0; h <= totalHrs; h += 6) {
+				const x = (h / totalHrs) * W;
+				const anchor = h === 0 ? 'start' : h === totalHrs ? 'end' : 'middle';
 				ticks += `<line x1="${x}" y1="${H}" x2="${x}" y2="${H + 5}" stroke="currentColor" opacity="0.5"/>`
-					+ `<text x="${x}" y="${H + 22}" font-size="20" fill="currentColor" text-anchor="${anchor}" opacity="0.75">${hourLabel(h)}</text>`;
+					+ `<text x="${x}" y="${H + 22}" font-size="20" fill="currentColor" text-anchor="${anchor}" opacity="0.75">${hourLabel((startHour + h) % 24)}</text>`;
 			}
-			return `<svg viewBox="0 0 ${W} ${H + 28}" class="sm-svg sm-bar" role="img" aria-label="Day, twilight and night across the day">${rects}${ticks}</svg>`;
+			return `<svg viewBox="0 0 ${W} ${H + 28}" class="sm-svg sm-bar" role="img" aria-label="Day, twilight and night across two days">${rects}${ticks}</svg>`;
 		};
 
 		// Shared geometry so the chart and the hover cursor map time/altitude the same.
@@ -716,7 +717,9 @@
 
 			// --- Charts ---
 			const segments = sunSegments(midnight, lat, lon);
-			el('twilightChart').innerHTML = buildTwilightBar(segments, midnight);
+			// Day & Night bar spans 48h: noon the day before → noon the day after.
+			const noonBefore = new Date(y, mo, d - 1, 12);
+			el('twilightChart').innerHTML = buildTwilightBar(sunSegments(noonBefore, lat, lon, 2880), noonBefore, 2880);
 			el('twilightLegend').innerHTML = Object.values(BANDS).map((b) =>
 				`<span class="sm-legend-item"><span class="sm-swatch" style="background:${b.color}"></span>${b.label}</span>`).join('');
 
