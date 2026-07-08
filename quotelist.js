@@ -255,3 +255,4 @@ quotes.push(new QuoteInfo( 'zrNJAn1gJV', "Savor the fruit of life, my young frie
 quotes.push(new QuoteInfo( 'unuReKF0Nv', "This is some bullshit!!!", "Harry Vanderspeigle", '2026-06-06'));
 quotes.push(new QuoteInfo( 'N6o7k6JF_W', "SonOfABitch!", "Harry Vanderspeigle", '2026-06-06'));
 quotes.push(new QuoteInfo( 'Tr4pPrn8Lq', "It's better to be pruned to grow than cut up to burn!!!", "John Trapp", '2026-06-19'));
+quotes.push(new QuoteInfo( "gzqnuK2upP", "Everyone is awful.", "Bob Belcher"));
