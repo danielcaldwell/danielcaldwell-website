@@ -126,7 +126,6 @@ quotes.push(new QuoteInfo( 'gHmk1pLRSB', "Women are the heart of honor - and we 
 quotes.push(new QuoteInfo( 'gIQ-D_hAJA', "Never worry in the getting of it. It grows in ye and speaks to ye. All you need to do is listen.", "Rob Roy regarding honor"));
 quotes.push(new QuoteInfo( 'gItly5cFkN', "No other success can compensate for failure in the home.", "David O. McKay"));
 quotes.push(new QuoteInfo( 'gZQRIcwCDz', "That's it!!! I'm moving to Canada!!!", "Anonymous"));
-quotes.push(new QuoteInfo( 'g_2jlQi7pd', "It's not a nice idea or a comfortable thought, it's reality", "Unknown speaker refering to Heavenly Father's Plan of Salvation"));
 quotes.push(new QuoteInfo( 'gzLbg7oJJH', "They bruised my soul with a proverb, \n\
 						   They bruised my back with a rod, \n\
 						   And they bade me bow to my elders, \n\
