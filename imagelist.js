@@ -135,3 +135,4 @@ images[119] = new ImageInfo( 'kN3xQpWm7R', './images/San-Diego-Temple.jpg', 'San
 images[120] = new ImageInfo( '362Ap4QfLQ', './images/2011-09-18_Angel-Moroni.jpg', 'Angel Moroni', '2011-09-18');
 images[121] = new ImageInfo( 'kqpS45gwZw', './images/2008-10-04_General-Conference.jpg', 'General Conference', '2008-10-04');
 images[122] = new ImageInfo( "Zy6B4MFq9Q", './images/2026-07-04_Washington-Pass.jpg', "Washington Pass", "2026-07-04", "A beautiful sunny day from Washington pass’ overlook.");
+images[123] = new ImageInfo( "gaSgiCGgT_", "./images/2026-07-07_Sunset-at-Roosevelt-Lake.jpg", "Sunset at Roosevelt Lake", "2026-07-07", "Taken in the summer, this was almost 20:00 hours (10:00 PM)");
