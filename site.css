@@ -383,6 +383,43 @@ input:checked + .slider:before {
 	margin-bottom: 3rem;
 }
 
+/* Images page pagination */
+
+.pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 3rem;
+}
+
+.pager:last-child {
+    margin-bottom: 0;
+}
+
+.pager-item {
+    border: 2px solid var(--border-color);
+    padding: 0.35rem 0.7rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    background-color: var(--settings-bg);
+    text-decoration: none;
+}
+
+a.pager-item:hover {
+    opacity: 0.75;
+}
+
+.pager-current {
+    font-weight: bold;
+    color: var(--bg-color);
+    background-color: var(--text-color);
+}
+
+.pager-disabled {
+    opacity: 0.4;
+}
+
 /* Tool pages (drawer-spacing-calculator, etc.) */
 
 .tool-container {

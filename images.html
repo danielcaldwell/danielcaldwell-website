@@ -43,8 +43,53 @@
 
 			// This code was created by me, Daniel Caldwell, and it is availiable to the public domain.
 
+			const PAGE_SIZE = 20;
+
 			const container = document.querySelector('.container');
-			for (const img of images) {
+
+			const totalPages = Math.max(1, Math.ceil(images.length / PAGE_SIZE));
+			const requestedPage = Number.parseInt(new URLSearchParams(window.location.search).get('page'), 10);
+			const currentPage = Number.isNaN(requestedPage) ? 1 : Math.min(Math.max(requestedPage, 1), totalPages);
+
+			const pageHref = (page) => page === 1 ? 'images.html' : `images.html?page=${page}`;
+
+			const createPager = () => {
+				const pager = document.createElement('nav');
+				pager.className = 'pager';
+				pager.setAttribute('aria-label', 'Image pages');
+
+				const addItem = (label, page, { disabled = false, current = false } = {}) => {
+					if (disabled || current) {
+						const item = document.createElement('span');
+						item.className = current ? 'pager-item pager-current' : 'pager-item pager-disabled';
+						item.textContent = label;
+						if (current) {
+							item.setAttribute('aria-current', 'page');
+						}
+						pager.appendChild(item);
+						return;
+					}
+
+					const link = document.createElement('a');
+					link.className = 'pager-item';
+					link.href = pageHref(page);
+					link.textContent = label;
+					pager.appendChild(link);
+				};
+
+				addItem('‹ Prev', currentPage - 1, { disabled: currentPage === 1 });
+				for (let page = 1; page <= totalPages; page++) {
+					addItem(String(page), page, { current: page === currentPage });
+				}
+				addItem('Next ›', currentPage + 1, { disabled: currentPage === totalPages });
+
+				return pager;
+			};
+
+			container.appendChild(createPager());
+
+			const pageImages = images.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+			for (const img of pageImages) {
 				const wrapper = document.createElement('div');
 				wrapper.className = 'artwork-container';
 
@@ -94,6 +139,8 @@
 
 				container.appendChild(wrapper);
 			}
+
+			container.appendChild(createPager());
 
 		</script>
 
