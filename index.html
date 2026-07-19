@@ -103,14 +103,51 @@
 		let refreshTimeoutID = 0;
 		let currentQuote = null;
 
+		// Deals from a shuffled deck so nothing repeats until the whole list has been shown
+		class ShuffleBag {
+			constructor(items) {
+				this.items = items;
+				this.deck = [];
+				this.lastDealt = null;
+			}
+
+			refill() {
+				this.deck = [...this.items];
+				for (let i = this.deck.length - 1; i > 0; i--) {
+					const j = Math.floor(Math.random() * (i + 1));
+					[this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
+				}
+				// avoid an immediate repeat across the deck boundary
+				const top = this.deck.length - 1;
+				if (top > 0 && this.deck[top] === this.lastDealt) {
+					[this.deck[0], this.deck[top]] = [this.deck[top], this.deck[0]];
+				}
+			}
+
+			draw() {
+				if (this.deck.length === 0) this.refill();
+				this.lastDealt = this.deck.pop();
+				return this.lastDealt;
+			}
+
+			// Remove a specific item from the current deck (used for deep links)
+			take(item) {
+				if (this.deck.length === 0) this.refill();
+				const idx = this.deck.indexOf(item);
+				if (idx !== -1) this.deck.splice(idx, 1);
+				this.lastDealt = item;
+			}
+		}
+
+		const imageBag = new ShuffleBag(images);
+		const quoteBag = new ShuffleBag(quotes);
+
 		function ranImage() {
-			const ranNum = Math.floor(Math.random() * images.length);
-			return images[ranNum];
+			return imageBag.draw();
 		}
 
 		function ranQuote() {
-			const ranNum = Math.floor(Math.random() * quotes.length);
-			return quotes[ranNum];
+			return quoteBag.draw();
 		}
 
 		function applyArtwork(artwork) {
@@ -229,8 +266,10 @@
 			const hashQuote = !hashImage && hashId && quotes.find(q => q.id === hashId);
 
 			if (hashImage) {
+				imageBag.take(hashImage);
 				applyArtwork(hashImage);
 			} else if (hashQuote) {
+				quoteBag.take(hashQuote);
 				applyQuote(hashQuote);
 			} else if (Math.random() < 0.5) {
 				applyQuote(ranQuote());
