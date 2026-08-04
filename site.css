@@ -1394,6 +1394,227 @@ a.pager-item:hover {
     white-space: nowrap;
 }
 
+/* Klondike Solitaire */
+
+.sol-container {
+    --sol-pad: 2rem;
+    padding-left: var(--sol-pad);
+    padding-right: var(--sol-pad);
+    max-width: 960px;
+}
+
+.sol-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin-bottom: 0.85rem;
+}
+
+.sol-btn {
+    font-family: inherit;
+    font-size: 0.85rem;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    border-radius: 2px;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+}
+
+.sol-btn:hover:not(:disabled) {
+    background-color: var(--settings-border);
+}
+
+.sol-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.sol-stats {
+    display: flex;
+    gap: 1rem;
+    margin-left: auto;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+.sol-board {
+    --sol-gap: clamp(0.25rem, 1.1vw, 0.6rem);
+    --sol-width: min(860px, 100vw - 2 * var(--sol-pad) - 6px);
+    --card-w: min(104px, calc((var(--sol-width) - 6 * var(--sol-gap)) / 7));
+    --card-h: calc(var(--card-w) * 1.42);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--sol-gap) * 2.5);
+    width: 100%;
+}
+
+.sol-row {
+    display: grid;
+    grid-template-columns: repeat(7, var(--card-w));
+    gap: var(--sol-gap);
+    justify-content: center;
+}
+
+.sol-slot {
+    position: relative;
+    width: var(--card-w);
+    height: var(--card-h);
+    border: 2px dashed var(--settings-border);
+    border-radius: calc(var(--card-w) * 0.08);
+}
+
+.sol-slot.sol-tableau {
+    align-self: start;
+}
+
+/* An emptied stock still holds the waste, so mark it as recyclable. */
+.sol-slot.sol-empty-stock::after {
+    content: '\21bb';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--card-w) * 0.4);
+    opacity: 0.4;
+}
+
+.sol-slot.sol-drop-ok {
+    outline: 2px solid #2e9e5b;
+    outline-offset: 2px;
+}
+
+.sol-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--card-w);
+    height: var(--card-h);
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    border-radius: calc(var(--card-w) * 0.08);
+    background-color: #fbfbf7;
+    color: #1a1a1a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sol-card.sol-red {
+    color: #c0392b;
+}
+
+.sol-card.sol-down {
+    background-color: #2c4a7c;
+    background-image: repeating-linear-gradient(45deg, #2c4a7c, #2c4a7c 4px, #3d63a5 4px, #3d63a5 8px);
+    border-color: #1d3355;
+}
+
+.sol-card.sol-draggable {
+    cursor: grab;
+    touch-action: none;
+}
+
+.sol-card.sol-hidden {
+    visibility: hidden;
+}
+
+.sol-corner {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.05;
+    font-weight: bold;
+    font-size: calc(var(--card-w) * 0.3);
+}
+
+.sol-corner-tl {
+    top: calc(var(--card-w) * 0.06);
+    left: calc(var(--card-w) * 0.08);
+}
+
+.sol-corner-br {
+    right: calc(var(--card-w) * 0.08);
+    bottom: calc(var(--card-w) * 0.06);
+    transform: rotate(180deg);
+}
+
+.sol-corner .sol-suit {
+    font-size: calc(var(--card-w) * 0.24);
+}
+
+.sol-pip {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--card-w) * 0.5);
+    opacity: 0.9;
+}
+
+.sol-drag {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 900;
+    pointer-events: none;
+}
+
+.sol-drag .sol-card {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.sol-win {
+    position: absolute;
+    inset: 0;
+    z-index: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.55);
+}
+
+.sol-win[hidden] {
+    display: none;
+}
+
+.sol-win-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: var(--settings-bg);
+    border: 2px solid var(--border-color);
+    padding: 1.25rem 1.75rem;
+    text-align: center;
+}
+
+.sol-win-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.sol-win-detail {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.sol-rules {
+    max-width: 640px;
+    margin-top: 1.25rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    opacity: 0.75;
+}
+
 @media (max-width: 800px) {
     .tool-layout {
         flex-direction: column;
@@ -1402,6 +1623,22 @@ a.pager-item:hover {
     .tool-panel {
         flex: 1 1 auto;
         width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .sol-container {
+        --sol-pad: 0.5rem;
+    }
+
+    .sol-pip,
+    .sol-corner-br {
+        display: none;
+    }
+
+    .sol-stats {
+        gap: 0.75rem;
+        font-size: 0.8rem;
     }
 }
 

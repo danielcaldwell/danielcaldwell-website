@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Solitaire — Daniel Caldwell</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="site.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
+</head>
+
+<body>
+
+	<div class="site-nav">
+		<div class="settings-bar">
+			<button id="settingsButton" class="settings-button" aria-label="Menu"><i class="fas fa-bars"></i></button>
+			<div id="settingsMenu" class="settings-menu hidden">
+				<div class="settings-option">
+					<label for="darkModeToggle">Dark Mode</label>
+					<label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider round"></span></label>
+				</div>
+				<hr class="settings-divider">
+				<div class="settings-option">
+					<a href="https://danielcaldwell.bearblog.dev/blog/" target="_blank" rel="noopener">Blog</a>
+				</div>
+				<div class="settings-option">
+					<a href="https://www.linkedin.com/in/danielcaldwell/" target="_blank" rel="noopener">LinkedIn</a>
+				</div>
+				<div class="settings-option">
+					<a href="https://bsky.app/profile/danielcaldwell.bsky.social" target="_blank" rel="noopener">Bluesky</a>
+				</div>
+			</div>
+		</div>
+		<nav class="breadcrumb" aria-label="Breadcrumb">
+			<a href="index.html">Home</a>
+			<span class="breadcrumb-sep">/</span>
+			<a href="tools.html">Tools</a>
+			<span class="breadcrumb-sep">/</span>
+			<span class="breadcrumb-current">Solitaire</span>
+		</nav>
+	</div>
+
+	<div class="container tool-container sol-container">
+		<h1 class="tool-title">Klondike Solitaire</h1>
+
+		<div class="sol-toolbar">
+			<button type="button" class="sol-btn" id="newGameBtn">New Game</button>
+			<button type="button" class="sol-btn" id="undoBtn" disabled>Undo</button>
+			<button type="button" class="sol-btn" id="autoBtn" disabled>Auto Finish</button>
+			<div class="sol-stats">
+				<span>Moves <span id="moveCount">0</span></span>
+				<span>Time <span id="timeDisplay">0:00</span></span>
+			</div>
+		</div>
+
+		<div class="sol-board" id="board">
+			<div class="sol-row">
+				<div class="sol-slot sol-stock" data-pile="stock" id="stockSlot" role="button" tabindex="0" aria-label="Stock — draw a card"></div>
+				<div class="sol-slot" data-pile="waste" aria-label="Waste"></div>
+				<div class="sol-spacer"></div>
+				<div class="sol-slot" data-pile="foundation-0" aria-label="Foundation 1"></div>
+				<div class="sol-slot" data-pile="foundation-1" aria-label="Foundation 2"></div>
+				<div class="sol-slot" data-pile="foundation-2" aria-label="Foundation 3"></div>
+				<div class="sol-slot" data-pile="foundation-3" aria-label="Foundation 4"></div>
+			</div>
+			<div class="sol-row">
+				<div class="sol-slot sol-tableau" data-pile="tableau-0" aria-label="Column 1"></div>
+				<div class="sol-slot sol-tableau" data-pile="tableau-1" aria-label="Column 2"></div>
+				<div class="sol-slot sol-tableau" data-pile="tableau-2" aria-label="Column 3"></div>
+				<div class="sol-slot sol-tableau" data-pile="tableau-3" aria-label="Column 4"></div>
+				<div class="sol-slot sol-tableau" data-pile="tableau-4" aria-label="Column 5"></div>
+				<div class="sol-slot sol-tableau" data-pile="tableau-5" aria-label="Column 6"></div>
+				<div class="sol-slot sol-tableau" data-pile="tableau-6" aria-label="Column 7"></div>
+			</div>
+			<div class="sol-win" id="winOverlay" hidden>
+				<div class="sol-win-panel">
+					<div class="sol-win-title">You win!</div>
+					<div class="sol-win-detail" id="winDetail"></div>
+					<button type="button" class="sol-btn" id="winNewGameBtn">New Game</button>
+				</div>
+			</div>
+		</div>
+
+		<p class="sol-rules">
+			Draw one card at a time — click the stock to turn a card, and click it again once empty to recycle the waste.
+			Build the four foundations up by suit from Ace to King, and build the columns down in alternating colours.
+			House rule: <strong>any card or run may be moved onto an empty column</strong>, not just a King.
+			Click a card to send it to the best available spot, or drag it where you want it.
+		</p>
+	</div>
+
+	<script>
+		const SUITS = ['s', 'h', 'd', 'c'];
+		const SUIT_SYMBOL = { s: '♠', h: '♥', d: '♦', c: '♣' };
+		const SUIT_NAME = { s: 'Spades', h: 'Hearts', d: 'Diamonds', c: 'Clubs' };
+		const RED_SUITS = new Set(['h', 'd']);
+		const RANK_LABEL = [null, 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+		const RANK_NAME = [null, 'Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King'];
+		const FAN_UP = 0.28;
+		const FAN_DOWN = 0.13;
+		const DRAG_THRESHOLD = 6;
+		const HISTORY_LIMIT = 200;
+		const SAVED_HISTORY_LIMIT = 25;
+		const STORAGE_KEY = 'solitaire-game';
+
+		class Card {
+			constructor(rank, suit, faceUp = false) {
+				this.rank = rank;
+				this.suit = suit;
+				this.faceUp = faceUp;
+			}
+
+			get isRed() {
+				return RED_SUITS.has(this.suit);
+			}
+
+			get label() {
+				return RANK_LABEL[this.rank];
+			}
+
+			get symbol() {
+				return SUIT_SYMBOL[this.suit];
+			}
+
+			get name() {
+				return `${RANK_NAME[this.rank]} of ${SUIT_NAME[this.suit]}`;
+			}
+
+			encode() {
+				return `${this.rank}${this.suit}${this.faceUp ? '1' : '0'}`;
+			}
+
+			static decode(text) {
+				const rank = parseInt(text, 10);
+				const suit = text[text.length - 2];
+				return new Card(rank, suit, text[text.length - 1] === '1');
+			}
+		}
+
+		const shuffledDeck = () => {
+			const cards = [];
+			for (const suit of SUITS) {
+				for (let rank = 1; rank <= 13; rank++) {
+					cards.push(new Card(rank, suit));
+				}
+			}
+			const random = (max) => {
+				if (window.crypto && window.crypto.getRandomValues) {
+					const buffer = new Uint32Array(1);
+					window.crypto.getRandomValues(buffer);
+					return buffer[0] % max;
+				}
+				return Math.floor(Math.random() * max);
+			};
+			for (let i = cards.length - 1; i > 0; i--) {
+				const j = random(i + 1);
+				[cards[i], cards[j]] = [cards[j], cards[i]];
+			}
+			return cards;
+		};
+
+		/* Rules and state for a game of Klondike, dealt one card at a time, where an
+		   empty column accepts any card rather than only a King. */
+		class Game {
+			constructor() {
+				this.newGame();
+			}
+
+			newGame() {
+				const deck = shuffledDeck();
+				this.tableau = Array.from({ length: 7 }, () => []);
+				this.foundations = Array.from({ length: 4 }, () => []);
+				this.waste = [];
+				for (let column = 0; column < 7; column++) {
+					for (let row = column; row < 7; row++) {
+						this.tableau[row].push(deck.pop());
+					}
+				}
+				this.tableau.forEach((pile) => { pile[pile.length - 1].faceUp = true; });
+				this.stock = deck;
+				this.moves = 0;
+				this.history = [];
+			}
+
+			pile(id) {
+				if (id === 'stock') return this.stock;
+				if (id === 'waste') return this.waste;
+				const [type, index] = id.split('-');
+				if (type === 'foundation') return this.foundations[Number(index)];
+				if (type === 'tableau') return this.tableau[Number(index)];
+				return null;
+			}
+
+			/* A run is movable when every card in it is face up and the cards step down
+			   in rank while alternating colour. */
+			isMovable(pileId, index) {
+				const pile = this.pile(pileId);
+				if (!pile || index < 0 || index >= pile.length) return false;
+				if (pileId === 'stock') return false;
+				if (pileId === 'waste' || pileId.startsWith('foundation')) return index === pile.length - 1;
+				for (let i = index; i < pile.length; i++) {
+					if (!pile[i].faceUp) return false;
+					if (i > index && (pile[i - 1].rank !== pile[i].rank + 1 || pile[i - 1].isRed === pile[i].isRed)) {
+						return false;
+					}
+				}
+				return true;
+			}
+
+			canDrop(cards, toId) {
+				if (!cards.length) return false;
+				const target = this.pile(toId);
+				if (!target) return false;
+				const card = cards[0];
+				const top = target[target.length - 1];
+				if (toId.startsWith('foundation')) {
+					if (cards.length > 1) return false;
+					return top ? top.suit === card.suit && card.rank === top.rank + 1 : card.rank === 1;
+				}
+				if (toId.startsWith('tableau')) {
+					if (!top) return true;
+					return top.faceUp && top.isRed !== card.isRed && card.rank === top.rank - 1;
+				}
+				return false;
+			}
+
+			tryMove(fromId, index, toId) {
+				if (fromId === toId || !this.isMovable(fromId, index)) return false;
+				const source = this.pile(fromId);
+				const cards = source.slice(index);
+				if (!this.canDrop(cards, toId)) return false;
+				this.snapshot();
+				source.splice(index);
+				this.pile(toId).push(...cards);
+				this.flipExposed(fromId);
+				this.moves++;
+				return true;
+			}
+
+			flipExposed(pileId) {
+				if (!pileId.startsWith('tableau')) return;
+				const pile = this.pile(pileId);
+				const top = pile[pile.length - 1];
+				if (top && !top.faceUp) top.faceUp = true;
+			}
+
+			/* Best destination for a click: a foundation if one will take the card,
+			   otherwise a column, preferring an occupied one over an empty one. */
+			findAutoTarget(fromId, index) {
+				const source = this.pile(fromId);
+				if (!source || !this.isMovable(fromId, index)) return null;
+				/* A card that has reached a foundation only comes back out by dragging
+				   it. Because an empty column accepts anything, a stray click would
+				   otherwise pull it straight back off. */
+				if (fromId.startsWith('foundation')) return null;
+				const cards = source.slice(index);
+				if (cards.length === 1) {
+					for (let i = 0; i < 4; i++) {
+						const id = `foundation-${i}`;
+						if (this.canDrop(cards, id)) return id;
+					}
+				}
+				let emptyTarget = null;
+				const movesWholePile = fromId.startsWith('tableau') && index === 0;
+				for (let i = 0; i < 7; i++) {
+					const id = `tableau-${i}`;
+					if (id === fromId || !this.canDrop(cards, id)) continue;
+					if (this.pile(id).length) return id;
+					if (!emptyTarget && !movesWholePile) emptyTarget = id;
+				}
+				return emptyTarget;
+			}
+
+			autoMove(fromId, index) {
+				const target = this.findAutoTarget(fromId, index);
+				return target ? this.tryMove(fromId, index, target) : false;
+			}
+
+			draw() {
+				if (!this.stock.length && !this.waste.length) return false;
+				this.snapshot();
+				if (this.stock.length) {
+					const card = this.stock.pop();
+					card.faceUp = true;
+					this.waste.push(card);
+				} else {
+					while (this.waste.length) {
+						const card = this.waste.pop();
+						card.faceUp = false;
+						this.stock.push(card);
+					}
+				}
+				this.moves++;
+				return true;
+			}
+
+			/* One step of the auto finish: play a card to a foundation if possible,
+			   otherwise turn the stock over looking for one. */
+			autoFinishStep() {
+				const sources = ['waste', ...this.tableau.map((_, i) => `tableau-${i}`)];
+				for (const fromId of sources) {
+					const pile = this.pile(fromId);
+					if (!pile.length) continue;
+					const index = pile.length - 1;
+					const cards = pile.slice(index);
+					for (let i = 0; i < 4; i++) {
+						if (this.canDrop(cards, `foundation-${i}`)) {
+							this.tryMove(fromId, index, `foundation-${i}`);
+							return 'played';
+						}
+					}
+				}
+				if (this.stock.length || this.waste.length) {
+					this.draw();
+					return 'drew';
+				}
+				return 'done';
+			}
+
+			isWon() {
+				return this.foundations.every((pile) => pile.length === 13);
+			}
+
+			allFaceUp() {
+				return this.tableau.every((pile) => pile.every((card) => card.faceUp));
+			}
+
+			canAutoFinish() {
+				return !this.isWon() && this.allFaceUp();
+			}
+
+			snapshot() {
+				this.history.push(this.serialize());
+				if (this.history.length > HISTORY_LIMIT) this.history.shift();
+			}
+
+			undo() {
+				if (!this.history.length) return false;
+				this.restore(this.history.pop());
+				return true;
+			}
+
+			serialize() {
+				const encode = (pile) => pile.map((card) => card.encode());
+				return {
+					stock: encode(this.stock),
+					waste: encode(this.waste),
+					foundations: this.foundations.map(encode),
+					tableau: this.tableau.map(encode),
+					moves: this.moves
+				};
+			}
+
+			restore(data) {
+				const decode = (pile) => pile.map((text) => Card.decode(text));
+				this.stock = decode(data.stock);
+				this.waste = decode(data.waste);
+				this.foundations = data.foundations.map(decode);
+				this.tableau = data.tableau.map(decode);
+				this.moves = data.moves || 0;
+			}
+		}
+
+		class SolitaireUI {
+			constructor() {
+				this.game = new Game();
+				this.board = document.getElementById('board');
+				this.slots = [...this.board.querySelectorAll('[data-pile]')];
+				this.stockSlot = document.getElementById('stockSlot');
+				this.moveCount = document.getElementById('moveCount');
+				this.timeDisplay = document.getElementById('timeDisplay');
+				this.undoBtn = document.getElementById('undoBtn');
+				this.autoBtn = document.getElementById('autoBtn');
+				this.winOverlay = document.getElementById('winOverlay');
+				this.winDetail = document.getElementById('winDetail');
+				this.dragLayer = null;
+				this.drag = null;
+				this.seconds = 0;
+				this.timerId = null;
+				this.autoFinishId = null;
+
+				this.restoreSaved();
+				this.bindEvents();
+				this.render();
+			}
+
+			/* --- persistence --- */
+
+			/* A short pile list would survive restore() and only blow up later during
+			   render, leaving a blank board, so check the shape before trusting it. */
+			isWellFormed(state) {
+				return Array.isArray(state.stock)
+					&& Array.isArray(state.waste)
+					&& Array.isArray(state.foundations) && state.foundations.length === 4
+					&& Array.isArray(state.tableau) && state.tableau.length === 7
+					&& [...state.foundations, ...state.tableau].every(Array.isArray);
+			}
+
+			restoreSaved() {
+				let saved = null;
+				try {
+					saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+				} catch (error) {
+					saved = null;
+				}
+				if (!saved || !saved.state || !this.isWellFormed(saved.state)) return;
+				try {
+					this.game.restore(saved.state);
+					this.game.history = Array.isArray(saved.history) ? saved.history : [];
+					this.seconds = saved.seconds || 0;
+				} catch (error) {
+					this.game.newGame();
+					this.seconds = 0;
+				}
+			}
+
+			save() {
+				const payload = {
+					state: this.game.serialize(),
+					history: this.game.history.slice(-SAVED_HISTORY_LIMIT),
+					seconds: this.seconds
+				};
+				try {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+				} catch (error) {
+					/* Storage may be full or blocked; the game still plays fine. */
+				}
+			}
+
+			/* --- timer --- */
+
+			startTimer() {
+				if (this.timerId || this.game.isWon()) return;
+				this.timerId = setInterval(() => {
+					this.seconds++;
+					this.renderTime();
+				}, 1000);
+			}
+
+			stopTimer() {
+				clearInterval(this.timerId);
+				this.timerId = null;
+			}
+
+			renderTime() {
+				const minutes = Math.floor(this.seconds / 60);
+				const seconds = String(this.seconds % 60).padStart(2, '0');
+				this.timeDisplay.textContent = `${minutes}:${seconds}`;
+			}
+
+			/* --- geometry --- */
+
+			cardSize() {
+				const rect = this.stockSlot.getBoundingClientRect();
+				return { width: rect.width, height: rect.height };
+			}
+
+			fanOffsets(pile, cardHeight) {
+				const offsets = [];
+				let top = 0;
+				pile.forEach((card, index) => {
+					offsets.push(top);
+					if (index < pile.length - 1) {
+						top += cardHeight * (card.faceUp ? FAN_UP : FAN_DOWN);
+					}
+				});
+				return offsets;
+			}
+
+			/* --- rendering --- */
+
+			cardElement(card, pileId, index) {
+				const element = document.createElement('div');
+				element.className = 'sol-card';
+				element.dataset.pile = pileId;
+				element.dataset.index = String(index);
+				if (!card.faceUp) {
+					element.classList.add('sol-down');
+					element.setAttribute('aria-label', 'Face down card');
+					return element;
+				}
+				element.classList.add(card.isRed ? 'sol-red' : 'sol-black');
+				element.setAttribute('aria-label', card.name);
+				if (this.game.isMovable(pileId, index)) element.classList.add('sol-draggable');
+				element.innerHTML =
+					`<div class="sol-corner sol-corner-tl"><span class="sol-rank">${card.label}</span><span class="sol-suit">${card.symbol}</span></div>` +
+					`<div class="sol-pip">${card.symbol}</div>` +
+					`<div class="sol-corner sol-corner-br"><span class="sol-rank">${card.label}</span><span class="sol-suit">${card.symbol}</span></div>`;
+				return element;
+			}
+
+			renderPile(slot) {
+				const pileId = slot.dataset.pile;
+				const pile = this.game.pile(pileId);
+				const { height } = this.cardSize();
+				slot.textContent = '';
+				if (pileId.startsWith('tableau')) {
+					const offsets = this.fanOffsets(pile, height);
+					pile.forEach((card, index) => {
+						const element = this.cardElement(card, pileId, index);
+						element.style.top = `${offsets[index]}px`;
+						slot.appendChild(element);
+					});
+					const last = offsets[offsets.length - 1] || 0;
+					slot.style.height = `${last + height}px`;
+					return;
+				}
+				const top = pile[pile.length - 1];
+				if (top) slot.appendChild(this.cardElement(top, pileId, pile.length - 1));
+				slot.classList.toggle('sol-empty-stock', pileId === 'stock' && !pile.length && this.game.waste.length > 0);
+			}
+
+			render() {
+				this.slots.forEach((slot) => this.renderPile(slot));
+				this.moveCount.textContent = String(this.game.moves);
+				this.renderTime();
+				this.undoBtn.disabled = !this.game.history.length;
+				this.autoBtn.disabled = !this.game.canAutoFinish() || Boolean(this.autoFinishId);
+				const won = this.game.isWon();
+				this.winOverlay.hidden = !won;
+				if (won) {
+					this.stopTimer();
+					this.winDetail.textContent = `${this.game.moves} moves in ${this.timeDisplay.textContent}.`;
+				}
+				this.save();
+			}
+
+			/* --- interaction --- */
+
+			bindEvents() {
+				document.getElementById('newGameBtn').addEventListener('click', () => this.startNewGame());
+				document.getElementById('winNewGameBtn').addEventListener('click', () => this.startNewGame());
+				this.undoBtn.addEventListener('click', () => this.handleUndo());
+				this.autoBtn.addEventListener('click', () => this.startAutoFinish());
+
+				this.stockSlot.addEventListener('keydown', (event) => {
+					if (event.key === 'Enter' || event.key === ' ') {
+						event.preventDefault();
+						this.handleStock();
+					}
+				});
+
+				this.board.addEventListener('pointerdown', (event) => this.onPointerDown(event));
+				window.addEventListener('pointermove', (event) => this.onPointerMove(event));
+				window.addEventListener('pointerup', (event) => this.onPointerUp(event));
+				window.addEventListener('pointercancel', () => this.cancelDrag());
+
+				window.addEventListener('resize', () => {
+					clearTimeout(this.resizeId);
+					this.resizeId = setTimeout(() => {
+						this.cancelDrag();
+						this.render();
+					}, 120);
+				});
+
+				document.addEventListener('keydown', (event) => {
+					if (event.target instanceof Element && event.target.matches('input, textarea')) return;
+					if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+						event.preventDefault();
+						this.handleUndo();
+					}
+				});
+			}
+
+			startNewGame() {
+				this.stopAutoFinish();
+				this.game.newGame();
+				this.seconds = 0;
+				this.stopTimer();
+				this.render();
+			}
+
+			handleUndo() {
+				this.stopAutoFinish();
+				if (this.game.undo()) this.render();
+			}
+
+			handleStock() {
+				if (this.game.draw()) {
+					this.startTimer();
+					this.render();
+				}
+			}
+
+			startAutoFinish() {
+				if (this.autoFinishId || !this.game.canAutoFinish()) return;
+				/* Stop if a whole pass through the stock produces no playable card. */
+				let barrenDraws = 0;
+				const limit = this.game.stock.length + this.game.waste.length + 1;
+				this.autoBtn.disabled = true;
+				this.autoFinishId = setInterval(() => {
+					const result = this.game.autoFinishStep();
+					if (result === 'played') barrenDraws = 0;
+					if (result === 'drew') barrenDraws++;
+					this.render();
+					if (result === 'done' || barrenDraws > limit || this.game.isWon()) this.stopAutoFinish();
+				}, 110);
+			}
+
+			stopAutoFinish() {
+				clearInterval(this.autoFinishId);
+				this.autoFinishId = null;
+				this.autoBtn.disabled = !this.game.canAutoFinish();
+			}
+
+			onPointerDown(event) {
+				if (this.drag) return;
+				if (event.button !== 0 && event.pointerType === 'mouse') return;
+				const cardElement = event.target.closest('.sol-card');
+				const slot = event.target.closest('[data-pile]');
+				if (!slot) return;
+				if (slot.dataset.pile === 'stock') {
+					event.preventDefault();
+					this.handleStock();
+					return;
+				}
+				if (!cardElement) return;
+				const pileId = cardElement.dataset.pile;
+				const index = Number(cardElement.dataset.index);
+				if (!this.game.isMovable(pileId, index)) return;
+				event.preventDefault();
+				this.stopAutoFinish();
+				const rect = cardElement.getBoundingClientRect();
+				this.drag = {
+					pileId,
+					index,
+					pointerId: event.pointerId,
+					startX: event.clientX,
+					startY: event.clientY,
+					grabX: event.clientX - rect.left,
+					grabY: event.clientY - rect.top,
+					active: false
+				};
+			}
+
+			onPointerMove(event) {
+				if (!this.drag || event.pointerId !== this.drag.pointerId) return;
+				if (!this.drag.active) {
+					const distance = Math.hypot(event.clientX - this.drag.startX, event.clientY - this.drag.startY);
+					if (distance < DRAG_THRESHOLD) return;
+					this.activateDrag();
+				}
+				this.positionDrag(event.clientX, event.clientY);
+				this.highlightTarget(this.dragRect(event.clientX, event.clientY));
+			}
+
+			onPointerUp(event) {
+				if (!this.drag || event.pointerId !== this.drag.pointerId) return;
+				const drag = this.drag;
+				if (!drag.active) {
+					this.drag = null;
+					this.handleTap(drag.pileId, drag.index);
+					return;
+				}
+				const target = this.findDropTarget(this.dragRect(event.clientX, event.clientY), drag);
+				this.cancelDrag();
+				if (target && this.game.tryMove(drag.pileId, drag.index, target)) this.startTimer();
+				this.render();
+			}
+
+			handleTap(pileId, index) {
+				if (this.game.autoMove(pileId, index)) {
+					this.startTimer();
+					this.render();
+				}
+			}
+
+			activateDrag() {
+				const drag = this.drag;
+				const pile = this.game.pile(drag.pileId);
+				const cards = pile.slice(drag.index);
+				const { height } = this.cardSize();
+				const offsets = this.fanOffsets(cards, height);
+				this.dragLayer = document.createElement('div');
+				this.dragLayer.className = 'sol-drag';
+				cards.forEach((card, i) => {
+					const element = this.cardElement(card, drag.pileId, drag.index + i);
+					element.style.top = `${offsets[i]}px`;
+					this.dragLayer.appendChild(element);
+				});
+				/* Lives inside the board so the cards inherit its --card-w/--card-h;
+				   it is fixed-position, so it still floats above everything. */
+				this.board.appendChild(this.dragLayer);
+				this.slots
+					.find((slot) => slot.dataset.pile === drag.pileId)
+					.querySelectorAll('.sol-card')
+					.forEach((element) => {
+						if (Number(element.dataset.index) >= drag.index) element.classList.add('sol-hidden');
+					});
+				drag.active = true;
+			}
+
+			positionDrag(clientX, clientY) {
+				const x = clientX - this.drag.grabX;
+				const y = clientY - this.drag.grabY;
+				this.dragLayer.style.transform = `translate(${x}px, ${y}px)`;
+			}
+
+			dragRect(clientX, clientY) {
+				const { width, height } = this.cardSize();
+				const left = clientX - this.drag.grabX;
+				const top = clientY - this.drag.grabY;
+				return { left, top, right: left + width, bottom: top + height };
+			}
+
+			/* Pick the slot the dragged card overlaps most, preferring one that will
+			   actually accept it so a near miss still lands where it was aimed. */
+			findDropTarget(rect, drag) {
+				const cards = this.game.pile(drag.pileId).slice(drag.index);
+				const candidates = [];
+				for (const slot of this.slots) {
+					const bounds = slot.getBoundingClientRect();
+					const overlapX = Math.max(0, Math.min(rect.right, bounds.right) - Math.max(rect.left, bounds.left));
+					const overlapY = Math.max(0, Math.min(rect.bottom, bounds.bottom) - Math.max(rect.top, bounds.top));
+					const area = overlapX * overlapY;
+					if (area > 0) candidates.push({ id: slot.dataset.pile, area });
+				}
+				candidates.sort((a, b) => b.area - a.area);
+				const match = candidates.find((candidate) => candidate.id !== drag.pileId && this.game.canDrop(cards, candidate.id));
+				return match ? match.id : null;
+			}
+
+			highlightTarget(rect) {
+				const target = this.findDropTarget(rect, this.drag);
+				this.slots.forEach((slot) => slot.classList.toggle('sol-drop-ok', slot.dataset.pile === target));
+			}
+
+			cancelDrag() {
+				if (this.dragLayer) {
+					this.dragLayer.remove();
+					this.dragLayer = null;
+				}
+				this.board.querySelectorAll('.sol-hidden').forEach((element) => element.classList.remove('sol-hidden'));
+				this.slots.forEach((slot) => slot.classList.remove('sol-drop-ok'));
+				this.drag = null;
+			}
+		}
+
+		requestAnimationFrame(() => new SolitaireUI());
+	</script>
+
+	<script src="nav.js"></script>
+
+</body>
+
+</html>
