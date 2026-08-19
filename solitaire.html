@@ -106,6 +106,11 @@
 		const RANK_NAME = [null, 'Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King'];
 		const FAN_UP = 0.28;
 		const FAN_DOWN = 0.13;
+		/* Room left below the tableau, and the tightest the fan may be squeezed. The
+		   floor only bites on a viewport too short to show a full column at all, and
+		   is small enough to keep a sliver of every card in view when it does. */
+		const BOARD_BOTTOM_GAP = 12;
+		const MIN_FAN_STEP = 10;
 		const DRAG_THRESHOLD = 6;
 		const HISTORY_LIMIT = 200;
 		const SAVED_HISTORY_LIMIT = 25;
@@ -385,6 +390,7 @@
 				this.drag = null;
 				this.seconds = 0;
 				this.timerId = null;
+				this.fanStep = 0;
 				this.autoFinishId = null;
 
 				this.restoreSaved();
@@ -463,16 +469,37 @@
 				return { width: rect.width, height: rect.height };
 			}
 
-			fanOffsets(pile, cardHeight) {
+			fanOffsets(pile, step) {
 				const offsets = [];
 				let top = 0;
 				pile.forEach((card, index) => {
 					offsets.push(top);
 					if (index < pile.length - 1) {
-						top += cardHeight * (card.faceUp ? FAN_UP : FAN_DOWN);
+						top += step * (card.faceUp ? FAN_UP : FAN_DOWN);
 					}
 				});
 				return offsets;
+			}
+
+			/* How far a pile fans out, measured in fan steps rather than pixels. */
+			fanSpan(pile) {
+				let span = 0;
+				for (let i = 0; i < pile.length - 1; i++) {
+					span += pile[i].faceUp ? FAN_UP : FAN_DOWN;
+				}
+				return span;
+			}
+
+			/* Columns grow downwards as they get longer, so tighten the fan until the
+			   deepest one still ends above the bottom of the window. The step never
+			   exceeds a card height, so a board with room to spare looks unchanged. */
+			measureFanStep(cardHeight) {
+				const span = Math.max(0, ...this.game.tableau.map((pile) => this.fanSpan(pile)));
+				if (!span) return cardHeight;
+				const slot = this.slots.find((item) => item.dataset.pile === 'tableau-0');
+				const top = slot.getBoundingClientRect().top + window.scrollY;
+				const room = window.innerHeight - top - cardHeight - BOARD_BOTTOM_GAP;
+				return Math.max(MIN_FAN_STEP, Math.min(cardHeight, room / span));
 			}
 
 			/* --- rendering --- */
@@ -503,7 +530,7 @@
 				const { height } = this.cardSize();
 				slot.textContent = '';
 				if (pileId.startsWith('tableau')) {
-					const offsets = this.fanOffsets(pile, height);
+					const offsets = this.fanOffsets(pile, this.fanStep);
 					pile.forEach((card, index) => {
 						const element = this.cardElement(card, pileId, index);
 						element.style.top = `${offsets[index]}px`;
@@ -519,6 +546,7 @@
 			}
 
 			render() {
+				this.fanStep = this.measureFanStep(this.cardSize().height);
 				this.slots.forEach((slot) => this.renderPile(slot));
 				this.moveCount.textContent = String(this.game.moves);
 				this.renderTime();
@@ -552,6 +580,10 @@
 				window.addEventListener('pointermove', (event) => this.onPointerMove(event));
 				window.addEventListener('pointerup', (event) => this.onPointerUp(event));
 				window.addEventListener('pointercancel', () => this.cancelDrag());
+
+				/* Late-loading styles can shift the board down after the first paint,
+				   which leaves the measured room for the fan out of date. */
+				window.addEventListener('load', () => this.render());
 
 				window.addEventListener('resize', () => {
 					clearTimeout(this.resizeId);
@@ -677,8 +709,7 @@
 				const drag = this.drag;
 				const pile = this.game.pile(drag.pileId);
 				const cards = pile.slice(drag.index);
-				const { height } = this.cardSize();
-				const offsets = this.fanOffsets(cards, height);
+				const offsets = this.fanOffsets(cards, this.fanStep);
 				this.dragLayer = document.createElement('div');
 				this.dragLayer.className = 'sol-drag';
 				cards.forEach((card, i) => {
