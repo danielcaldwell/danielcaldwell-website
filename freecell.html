@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>FreeCell — Daniel Caldwell</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="site.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<script>
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme) {
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			document.documentElement.setAttribute('data-theme', 'dark');
+		}
+	</script>
+</head>
+
+<body>
+
+	<div class="site-nav">
+		<div class="settings-bar">
+			<button id="settingsButton" class="settings-button" aria-label="Menu"><i class="fas fa-bars"></i></button>
+			<div id="settingsMenu" class="settings-menu hidden">
+				<div class="settings-option">
+					<label for="darkModeToggle">Dark Mode</label>
+					<label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider round"></span></label>
+				</div>
+				<hr class="settings-divider">
+				<div class="settings-option">
+					<a href="https://danielcaldwell.bearblog.dev/blog/" target="_blank" rel="noopener">Blog</a>
+				</div>
+				<div class="settings-option">
+					<a href="https://www.linkedin.com/in/danielcaldwell/" target="_blank" rel="noopener">LinkedIn</a>
+				</div>
+				<div class="settings-option">
+					<a href="https://bsky.app/profile/danielcaldwell.bsky.social" target="_blank" rel="noopener">Bluesky</a>
+				</div>
+			</div>
+		</div>
+		<nav class="breadcrumb" aria-label="Breadcrumb">
+			<a href="index.html">Home</a>
+			<span class="breadcrumb-sep">/</span>
+			<a href="tools.html">Tools</a>
+			<span class="breadcrumb-sep">/</span>
+			<span class="breadcrumb-current">FreeCell</span>
+		</nav>
+	</div>
+
+	<div class="container tool-container fc-container">
+		<h1 class="tool-title">Double-Deck FreeCell</h1>
+
+		<div class="sol-toolbar">
+			<button type="button" class="sol-btn" id="newGameBtn">New Game</button>
+			<button type="button" class="sol-btn" id="undoBtn" disabled>Undo</button>
+			<button type="button" class="sol-btn" id="autoBtn" disabled>Auto Finish</button>
+			<div class="sol-stats">
+				<span>Moves <span id="moveCount">0</span></span>
+				<span>Time <span id="timeDisplay">0:00</span></span>
+			</div>
+		</div>
+
+		<div class="fc-scroll">
+			<div class="fc-board" id="board">
+				<div class="fc-top">
+					<div class="fc-group">
+						<span class="fc-group-label">Free Cells</span>
+						<div class="fc-slots">
+							<div class="sol-slot" data-pile="cell-0" aria-label="Free cell 1"></div>
+							<div class="sol-slot" data-pile="cell-1" aria-label="Free cell 2"></div>
+							<div class="sol-slot" data-pile="cell-2" aria-label="Free cell 3"></div>
+							<div class="sol-slot" data-pile="cell-3" aria-label="Free cell 4"></div>
+							<div class="sol-slot" data-pile="cell-4" aria-label="Free cell 5"></div>
+							<div class="sol-slot" data-pile="cell-5" aria-label="Free cell 6"></div>
+							<div class="sol-slot" data-pile="cell-6" aria-label="Free cell 7"></div>
+							<div class="sol-slot" data-pile="cell-7" aria-label="Free cell 8"></div>
+						</div>
+					</div>
+					<div class="fc-group">
+						<span class="fc-group-label">Foundations</span>
+						<div class="fc-slots">
+							<div class="sol-slot" data-pile="foundation-0" aria-label="Foundation 1"></div>
+							<div class="sol-slot" data-pile="foundation-1" aria-label="Foundation 2"></div>
+							<div class="sol-slot" data-pile="foundation-2" aria-label="Foundation 3"></div>
+							<div class="sol-slot" data-pile="foundation-3" aria-label="Foundation 4"></div>
+							<div class="sol-slot" data-pile="foundation-4" aria-label="Foundation 5"></div>
+							<div class="sol-slot" data-pile="foundation-5" aria-label="Foundation 6"></div>
+							<div class="sol-slot" data-pile="foundation-6" aria-label="Foundation 7"></div>
+							<div class="sol-slot" data-pile="foundation-7" aria-label="Foundation 8"></div>
+						</div>
+					</div>
+				</div>
+				<div class="fc-tableau-row">
+					<div class="sol-slot sol-tableau" data-pile="tableau-0" aria-label="Column 1"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-1" aria-label="Column 2"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-2" aria-label="Column 3"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-3" aria-label="Column 4"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-4" aria-label="Column 5"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-5" aria-label="Column 6"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-6" aria-label="Column 7"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-7" aria-label="Column 8"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-8" aria-label="Column 9"></div>
+					<div class="sol-slot sol-tableau" data-pile="tableau-9" aria-label="Column 10"></div>
+				</div>
+				<div class="sol-win" id="winOverlay" hidden>
+					<div class="sol-win-panel">
+						<div class="sol-win-title">You win!</div>
+						<div class="sol-win-detail" id="winDetail"></div>
+						<button type="button" class="sol-btn" id="winNewGameBtn">New Game</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<p class="sol-rules">
+			Two shuffled decks — 104 cards — dealt face up across ten columns, with eight free cells and eight foundations.
+			Build each foundation up by suit from Ace to King; two foundations fill with each suit.
+			Build the columns down in alternating colours, and put any card on an empty column.
+			A run moves only if there is room to shuffle it one card at a time:
+			<strong>(free cells + 1) × 2<sup>empty columns</sup></strong> cards, halved when the empty column is the one you are moving to.
+			Cards may be taken back off the foundations at any time.
+			Click a card to send it to the best available spot, or drag it where you want it.
+			Undo is unlimited — you can walk a game all the way back to the deal.
+		</p>
+	</div>
+
+	<script>
+		const SUITS = ['s', 'h', 'd', 'c'];
+		const SUIT_SYMBOL = { s: '♠', h: '♥', d: '♦', c: '♣' };
+		const SUIT_NAME = { s: 'Spades', h: 'Hearts', d: 'Diamonds', c: 'Clubs' };
+		const RED_SUITS = new Set(['h', 'd']);
+		const RANK_LABEL = [null, 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+		const RANK_NAME = [null, 'Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King'];
+		/* Every card is face up here, so a rank/suit pair is the whole card and one
+		   snapshot of the board costs about 300 bytes — cheap enough to keep the
+		   entire undo history, and to save all of it between visits. */
+		const RANK_CODE = '0A23456789TJQK';
+		const DECKS = 2;
+		const COLUMNS = 10;
+		const CELLS = 8;
+		const FOUNDATIONS = 8;
+		/* How far each card slides below the one before it, as a fraction of the
+		   card height, and the tightest that may ever be squeezed — below roughly a
+		   third of a card width the rank in the corner disappears under the next
+		   card and the column becomes unreadable. */
+		const FAN_UP = 0.28;
+		const MIN_FAN_RATIO = 0.34;
+		const BOARD_BOTTOM_GAP = 12;
+		const DRAG_THRESHOLD = 6;
+		const STORAGE_KEY = 'freecell-game';
+
+		class Card {
+			constructor(rank, suit) {
+				this.rank = rank;
+				this.suit = suit;
+			}
+
+			get isRed() {
+				return RED_SUITS.has(this.suit);
+			}
+
+			get label() {
+				return RANK_LABEL[this.rank];
+			}
+
+			get symbol() {
+				return SUIT_SYMBOL[this.suit];
+			}
+
+			get name() {
+				return `${RANK_NAME[this.rank]} of ${SUIT_NAME[this.suit]}`;
+			}
+
+			encode() {
+				return RANK_CODE[this.rank] + this.suit;
+			}
+
+			static decode(code) {
+				return new Card(RANK_CODE.indexOf(code[0]), code[1]);
+			}
+		}
+
+		const encodePile = (pile) => pile.map((card) => card.encode()).join('');
+
+		const decodePile = (text) => {
+			const cards = [];
+			for (let i = 0; i + 1 < text.length; i += 2) {
+				cards.push(Card.decode(text.slice(i, i + 2)));
+			}
+			return cards;
+		};
+
+		const shuffledDeck = () => {
+			const cards = [];
+			for (let deck = 0; deck < DECKS; deck++) {
+				for (const suit of SUITS) {
+					for (let rank = 1; rank <= 13; rank++) {
+						cards.push(new Card(rank, suit));
+					}
+				}
+			}
+			const random = (max) => {
+				if (window.crypto && window.crypto.getRandomValues) {
+					const buffer = new Uint32Array(1);
+					window.crypto.getRandomValues(buffer);
+					return buffer[0] % max;
+				}
+				return Math.floor(Math.random() * max);
+			};
+			for (let i = cards.length - 1; i > 0; i--) {
+				const j = random(i + 1);
+				[cards[i], cards[j]] = [cards[j], cards[i]];
+			}
+			return cards;
+		};
+
+		/* Rules and state for double-deck FreeCell: two decks across ten columns,
+		   eight free cells and eight foundations, everything face up from the deal. */
+		class Game {
+			constructor() {
+				this.newGame();
+			}
+
+			newGame() {
+				const deck = shuffledDeck();
+				this.tableau = Array.from({ length: COLUMNS }, () => []);
+				this.foundations = Array.from({ length: FOUNDATIONS }, () => []);
+				/* A free cell is a pile capped at one card, so every pile in the game
+				   can be read, pushed and spliced the same way. */
+				this.cells = Array.from({ length: CELLS }, () => []);
+				let column = 0;
+				while (deck.length) {
+					this.tableau[column % COLUMNS].push(deck.pop());
+					column++;
+				}
+				this.moves = 0;
+				this.history = [];
+			}
+
+			pile(id) {
+				const [type, index] = id.split('-');
+				if (type === 'cell') return this.cells[Number(index)];
+				if (type === 'foundation') return this.foundations[Number(index)];
+				if (type === 'tableau') return this.tableau[Number(index)];
+				return null;
+			}
+
+			/* A run is movable when the cards step down in rank while alternating
+			   colour. Cells and foundations only ever give up their top card. */
+			isMovable(pileId, index) {
+				const pile = this.pile(pileId);
+				if (!pile || index < 0 || index >= pile.length) return false;
+				if (!pileId.startsWith('tableau')) return index === pile.length - 1;
+				for (let i = index + 1; i < pile.length; i++) {
+					if (pile[i - 1].rank !== pile[i].rank + 1 || pile[i - 1].isRed === pile[i].isRed) return false;
+				}
+				return true;
+			}
+
+			/* How many cards a run can carry in one go: each empty cell holds one card
+			   of the run mid-flight, and each empty column doubles that. A column being
+			   moved *into* cannot also be used as scratch space. */
+			maxMove(toId) {
+				const freeCells = this.cells.filter((cell) => !cell.length).length;
+				let emptyColumns = this.tableau.filter((pile) => !pile.length).length;
+				if (toId.startsWith('tableau') && !this.pile(toId).length) emptyColumns--;
+				return (freeCells + 1) * 2 ** Math.max(0, emptyColumns);
+			}
+
+			canDrop(cards, toId) {
+				if (!cards.length) return false;
+				const target = this.pile(toId);
+				if (!target) return false;
+				const card = cards[0];
+				const top = target[target.length - 1];
+				if (toId.startsWith('cell')) return cards.length === 1 && !target.length;
+				if (toId.startsWith('foundation')) {
+					if (cards.length > 1) return false;
+					return top ? top.suit === card.suit && card.rank === top.rank + 1 : card.rank === 1;
+				}
+				if (toId.startsWith('tableau')) {
+					if (cards.length > this.maxMove(toId)) return false;
+					if (!top) return true;
+					return top.isRed !== card.isRed && card.rank === top.rank - 1;
+				}
+				return false;
+			}
+
+			tryMove(fromId, index, toId) {
+				if (fromId === toId || !this.isMovable(fromId, index)) return false;
+				const source = this.pile(fromId);
+				const cards = source.slice(index);
+				if (!this.canDrop(cards, toId)) return false;
+				this.snapshot();
+				source.splice(index);
+				this.pile(toId).push(...cards);
+				this.moves++;
+				return true;
+			}
+
+			/* Best destination for a click: home if the card can go there, then a
+			   column it builds on, then an empty column, and a free cell last. */
+			findAutoTarget(fromId, index) {
+				const source = this.pile(fromId);
+				if (!source || !this.isMovable(fromId, index)) return null;
+				const cards = source.slice(index);
+				if (cards.length === 1 && !fromId.startsWith('foundation')) {
+					for (let i = 0; i < FOUNDATIONS; i++) {
+						const id = `foundation-${i}`;
+						if (this.canDrop(cards, id)) return id;
+					}
+				}
+				let emptyTarget = null;
+				const movesWholePile = fromId.startsWith('tableau') && index === 0;
+				for (let i = 0; i < COLUMNS; i++) {
+					const id = `tableau-${i}`;
+					if (id === fromId || !this.canDrop(cards, id)) continue;
+					if (this.pile(id).length) return id;
+					if (!emptyTarget && !movesWholePile) emptyTarget = id;
+				}
+				if (emptyTarget) return emptyTarget;
+				if (cards.length === 1 && !fromId.startsWith('cell')) {
+					for (let i = 0; i < CELLS; i++) {
+						const id = `cell-${i}`;
+						if (this.canDrop(cards, id)) return id;
+					}
+				}
+				return null;
+			}
+
+			autoMove(fromId, index) {
+				const target = this.findAutoTarget(fromId, index);
+				return target ? this.tryMove(fromId, index, target) : false;
+			}
+
+			/* One step of the auto finish: send any exposed card home. */
+			autoFinishStep() {
+				const sources = [
+					...this.cells.map((_, i) => `cell-${i}`),
+					...this.tableau.map((_, i) => `tableau-${i}`)
+				];
+				for (const fromId of sources) {
+					const pile = this.pile(fromId);
+					if (!pile.length) continue;
+					const index = pile.length - 1;
+					const cards = pile.slice(index);
+					for (let i = 0; i < FOUNDATIONS; i++) {
+						if (this.canDrop(cards, `foundation-${i}`)) {
+							this.tryMove(fromId, index, `foundation-${i}`);
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+
+			isWon() {
+				return this.foundations.every((pile) => pile.length === 13);
+			}
+
+			/* Once every column runs strictly downwards in rank, the lowest card left
+			   in play is always on top of something, so the rest plays itself. */
+			canAutoFinish() {
+				if (this.isWon()) return false;
+				return this.tableau.every((pile) => pile.every((card, i) => i === 0 || pile[i - 1].rank > card.rank));
+			}
+
+			snapshot() {
+				this.history.push(this.serialize());
+			}
+
+			undo() {
+				if (!this.history.length) return false;
+				this.restore(this.history.pop());
+				return true;
+			}
+
+			serialize() {
+				return {
+					cells: this.cells.map(encodePile),
+					foundations: this.foundations.map(encodePile),
+					tableau: this.tableau.map(encodePile),
+					moves: this.moves
+				};
+			}
+
+			restore(data) {
+				this.cells = data.cells.map(decodePile);
+				this.foundations = data.foundations.map(decodePile);
+				this.tableau = data.tableau.map(decodePile);
+				this.moves = data.moves || 0;
+			}
+		}
+
+		class FreeCellUI {
+			constructor() {
+				this.game = new Game();
+				this.board = document.getElementById('board');
+				this.slots = [...this.board.querySelectorAll('[data-pile]')];
+				this.sizeSlot = this.slots[0];
+				this.moveCount = document.getElementById('moveCount');
+				this.timeDisplay = document.getElementById('timeDisplay');
+				this.undoBtn = document.getElementById('undoBtn');
+				this.autoBtn = document.getElementById('autoBtn');
+				this.winOverlay = document.getElementById('winOverlay');
+				this.winDetail = document.getElementById('winDetail');
+				this.dragLayer = null;
+				this.drag = null;
+				this.seconds = 0;
+				this.timerId = null;
+				this.fanOffset = 0;
+				this.autoFinishId = null;
+
+				this.restoreSaved();
+				this.bindEvents();
+				this.render();
+			}
+
+			/* --- persistence --- */
+
+			/* A short pile list would survive restore() and only blow up later during
+			   render, leaving a blank board, so check the shape before trusting it. */
+			isWellFormed(state) {
+				const piles = [state.cells, state.foundations, state.tableau];
+				if (!piles.every(Array.isArray)) return false;
+				if (state.cells.length !== CELLS) return false;
+				if (state.foundations.length !== FOUNDATIONS) return false;
+				if (state.tableau.length !== COLUMNS) return false;
+				return piles.flat().every((pile) => typeof pile === 'string');
+			}
+
+			restoreSaved() {
+				let saved = null;
+				try {
+					saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+				} catch (error) {
+					saved = null;
+				}
+				if (!saved || !saved.state || !this.isWellFormed(saved.state)) return;
+				try {
+					this.game.restore(saved.state);
+					const history = Array.isArray(saved.history) ? saved.history : [];
+					this.game.history = history.filter((entry) => entry && this.isWellFormed(entry));
+					this.seconds = saved.seconds || 0;
+				} catch (error) {
+					this.game.newGame();
+					this.seconds = 0;
+				}
+			}
+
+			save() {
+				const payload = {
+					state: this.game.serialize(),
+					history: this.game.history,
+					seconds: this.seconds
+				};
+				try {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+				} catch (error) {
+					/* Storage may be full or blocked; the game still plays fine, and the
+					   undo history in memory is untouched. */
+				}
+			}
+
+			/* --- timer --- */
+
+			startTimer() {
+				if (this.timerId || this.game.isWon()) return;
+				this.timerId = setInterval(() => {
+					this.seconds++;
+					this.renderTime();
+				}, 1000);
+			}
+
+			stopTimer() {
+				clearInterval(this.timerId);
+				this.timerId = null;
+			}
+
+			renderTime() {
+				const minutes = Math.floor(this.seconds / 60);
+				const seconds = String(this.seconds % 60).padStart(2, '0');
+				this.timeDisplay.textContent = `${minutes}:${seconds}`;
+			}
+
+			/* --- geometry --- */
+
+			cardSize() {
+				const rect = this.sizeSlot.getBoundingClientRect();
+				return { width: rect.width, height: rect.height };
+			}
+
+			fanOffsets(pile) {
+				return pile.map((card, index) => index * this.fanOffset);
+			}
+
+			/* Columns grow downwards as they get longer, so tighten the fan until the
+			   deepest one still ends above the bottom of the window. Past the point
+			   where the ranks would vanish the squeeze stops and the page scrolls
+			   instead, and a board with room to spare fans at the full offset. */
+			measureFanOffset({ width, height }) {
+				const longest = Math.max(...this.game.tableau.map((pile) => pile.length));
+				const ideal = height * FAN_UP;
+				if (longest < 2) return ideal;
+				const slot = this.slots.find((item) => item.dataset.pile === 'tableau-0');
+				const top = slot.getBoundingClientRect().top + window.scrollY;
+				const room = window.innerHeight - top - height - BOARD_BOTTOM_GAP;
+				return Math.max(width * MIN_FAN_RATIO, Math.min(ideal, room / (longest - 1)));
+			}
+
+			/* --- rendering --- */
+
+			cardElement(card, pileId, index) {
+				const element = document.createElement('div');
+				element.className = `sol-card ${card.isRed ? 'sol-red' : 'sol-black'}`;
+				element.dataset.pile = pileId;
+				element.dataset.index = String(index);
+				element.setAttribute('aria-label', card.name);
+				if (this.game.isMovable(pileId, index)) element.classList.add('sol-draggable');
+				element.innerHTML =
+					`<div class="sol-corner sol-corner-tl"><span class="sol-rank">${card.label}</span><span class="sol-suit">${card.symbol}</span></div>` +
+					`<div class="fc-corner-tr">${card.symbol}</div>` +
+					`<div class="sol-pip">${card.symbol}</div>` +
+					`<div class="sol-corner sol-corner-br"><span class="sol-rank">${card.label}</span><span class="sol-suit">${card.symbol}</span></div>`;
+				return element;
+			}
+
+			renderPile(slot) {
+				const pileId = slot.dataset.pile;
+				const pile = this.game.pile(pileId);
+				const { height } = this.cardSize();
+				slot.textContent = '';
+				if (pileId.startsWith('tableau')) {
+					const offsets = this.fanOffsets(pile);
+					pile.forEach((card, index) => {
+						const element = this.cardElement(card, pileId, index);
+						element.style.top = `${offsets[index]}px`;
+						slot.appendChild(element);
+					});
+					const last = offsets[offsets.length - 1] || 0;
+					slot.style.height = `${last + height}px`;
+					return;
+				}
+				const top = pile[pile.length - 1];
+				if (top) slot.appendChild(this.cardElement(top, pileId, pile.length - 1));
+			}
+
+			render() {
+				this.fanOffset = this.measureFanOffset(this.cardSize());
+				this.slots.forEach((slot) => this.renderPile(slot));
+				this.moveCount.textContent = String(this.game.moves);
+				this.renderTime();
+				this.undoBtn.disabled = !this.game.history.length;
+				this.autoBtn.disabled = !this.game.canAutoFinish() || Boolean(this.autoFinishId);
+				const won = this.game.isWon();
+				this.winOverlay.hidden = !won;
+				if (won) {
+					this.stopTimer();
+					this.winDetail.textContent = `${this.game.moves} moves in ${this.timeDisplay.textContent}.`;
+				}
+				this.save();
+			}
+
+			/* --- interaction --- */
+
+			bindEvents() {
+				document.getElementById('newGameBtn').addEventListener('click', () => this.startNewGame());
+				document.getElementById('winNewGameBtn').addEventListener('click', () => this.startNewGame());
+				this.undoBtn.addEventListener('click', () => this.handleUndo());
+				this.autoBtn.addEventListener('click', () => this.startAutoFinish());
+
+				this.board.addEventListener('pointerdown', (event) => this.onPointerDown(event));
+				window.addEventListener('pointermove', (event) => this.onPointerMove(event));
+				window.addEventListener('pointerup', (event) => this.onPointerUp(event));
+				window.addEventListener('pointercancel', () => this.cancelDrag());
+
+				/* Late-loading styles can shift the board down after the first paint,
+				   which leaves the measured room for the fan out of date. */
+				window.addEventListener('load', () => this.render());
+
+				window.addEventListener('resize', () => {
+					clearTimeout(this.resizeId);
+					this.resizeId = setTimeout(() => {
+						this.cancelDrag();
+						this.render();
+					}, 120);
+				});
+
+				document.addEventListener('keydown', (event) => {
+					if (event.target instanceof Element && event.target.matches('input, textarea')) return;
+					if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+						event.preventDefault();
+						this.handleUndo();
+					}
+				});
+			}
+
+			startNewGame() {
+				this.stopAutoFinish();
+				this.game.newGame();
+				this.seconds = 0;
+				this.stopTimer();
+				this.render();
+			}
+
+			handleUndo() {
+				this.stopAutoFinish();
+				if (this.game.undo()) this.render();
+			}
+
+			startAutoFinish() {
+				if (this.autoFinishId || !this.game.canAutoFinish()) return;
+				this.autoBtn.disabled = true;
+				this.autoFinishId = setInterval(() => {
+					const played = this.game.autoFinishStep();
+					this.render();
+					if (!played || this.game.isWon()) this.stopAutoFinish();
+				}, 60);
+			}
+
+			stopAutoFinish() {
+				clearInterval(this.autoFinishId);
+				this.autoFinishId = null;
+				this.autoBtn.disabled = !this.game.canAutoFinish();
+			}
+
+			onPointerDown(event) {
+				if (this.drag) return;
+				if (event.button !== 0 && event.pointerType === 'mouse') return;
+				const cardElement = event.target.closest('.sol-card');
+				if (!cardElement) return;
+				const pileId = cardElement.dataset.pile;
+				const index = Number(cardElement.dataset.index);
+				if (!this.game.isMovable(pileId, index)) return;
+				event.preventDefault();
+				this.stopAutoFinish();
+				const rect = cardElement.getBoundingClientRect();
+				this.drag = {
+					pileId,
+					index,
+					pointerId: event.pointerId,
+					startX: event.clientX,
+					startY: event.clientY,
+					grabX: event.clientX - rect.left,
+					grabY: event.clientY - rect.top,
+					active: false
+				};
+			}
+
+			onPointerMove(event) {
+				if (!this.drag || event.pointerId !== this.drag.pointerId) return;
+				if (!this.drag.active) {
+					const distance = Math.hypot(event.clientX - this.drag.startX, event.clientY - this.drag.startY);
+					if (distance < DRAG_THRESHOLD) return;
+					this.activateDrag();
+				}
+				this.positionDrag(event.clientX, event.clientY);
+				this.highlightTarget(this.dragRect(event.clientX, event.clientY));
+			}
+
+			onPointerUp(event) {
+				if (!this.drag || event.pointerId !== this.drag.pointerId) return;
+				const drag = this.drag;
+				if (!drag.active) {
+					this.drag = null;
+					this.handleTap(drag.pileId, drag.index);
+					return;
+				}
+				const target = this.findDropTarget(this.dragRect(event.clientX, event.clientY), drag);
+				this.cancelDrag();
+				if (target && this.game.tryMove(drag.pileId, drag.index, target)) this.startTimer();
+				this.render();
+			}
+
+			handleTap(pileId, index) {
+				if (this.game.autoMove(pileId, index)) {
+					this.startTimer();
+					this.render();
+				}
+			}
+
+			activateDrag() {
+				const drag = this.drag;
+				const pile = this.game.pile(drag.pileId);
+				const cards = pile.slice(drag.index);
+				const offsets = this.fanOffsets(cards);
+				this.dragLayer = document.createElement('div');
+				this.dragLayer.className = 'sol-drag';
+				cards.forEach((card, i) => {
+					const element = this.cardElement(card, drag.pileId, drag.index + i);
+					element.style.top = `${offsets[i]}px`;
+					this.dragLayer.appendChild(element);
+				});
+				/* Lives inside the board so the cards inherit its --card-w/--card-h;
+				   it is fixed-position, so it still floats above everything. */
+				this.board.appendChild(this.dragLayer);
+				this.slots
+					.find((slot) => slot.dataset.pile === drag.pileId)
+					.querySelectorAll('.sol-card')
+					.forEach((element) => {
+						if (Number(element.dataset.index) >= drag.index) element.classList.add('sol-hidden');
+					});
+				drag.active = true;
+			}
+
+			positionDrag(clientX, clientY) {
+				const x = clientX - this.drag.grabX;
+				const y = clientY - this.drag.grabY;
+				this.dragLayer.style.transform = `translate(${x}px, ${y}px)`;
+			}
+
+			dragRect(clientX, clientY) {
+				const { width, height } = this.cardSize();
+				const left = clientX - this.drag.grabX;
+				const top = clientY - this.drag.grabY;
+				return { left, top, right: left + width, bottom: top + height };
+			}
+
+			/* Pick the slot the dragged card overlaps most, preferring one that will
+			   actually accept it so a near miss still lands where it was aimed. */
+			findDropTarget(rect, drag) {
+				const cards = this.game.pile(drag.pileId).slice(drag.index);
+				const candidates = [];
+				for (const slot of this.slots) {
+					const bounds = slot.getBoundingClientRect();
+					const overlapX = Math.max(0, Math.min(rect.right, bounds.right) - Math.max(rect.left, bounds.left));
+					const overlapY = Math.max(0, Math.min(rect.bottom, bounds.bottom) - Math.max(rect.top, bounds.top));
+					const area = overlapX * overlapY;
+					if (area > 0) candidates.push({ id: slot.dataset.pile, area });
+				}
+				candidates.sort((a, b) => b.area - a.area);
+				const match = candidates.find((candidate) => candidate.id !== drag.pileId && this.game.canDrop(cards, candidate.id));
+				return match ? match.id : null;
+			}
+
+			highlightTarget(rect) {
+				const target = this.findDropTarget(rect, this.drag);
+				this.slots.forEach((slot) => slot.classList.toggle('sol-drop-ok', slot.dataset.pile === target));
+			}
+
+			cancelDrag() {
+				if (this.dragLayer) {
+					this.dragLayer.remove();
+					this.dragLayer = null;
+				}
+				this.board.querySelectorAll('.sol-hidden').forEach((element) => element.classList.remove('sol-hidden'));
+				this.slots.forEach((slot) => slot.classList.remove('sol-drop-ok'));
+				this.drag = null;
+			}
+		}
+
+		requestAnimationFrame(() => new FreeCellUI());
+	</script>
+
+	<script src="nav.js"></script>
+
+</body>
+
+</html>

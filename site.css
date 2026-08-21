@@ -1615,6 +1615,87 @@ a.pager-item:hover {
     opacity: 0.75;
 }
 
+/* Double-deck FreeCell. The cards, slots, drag layer, toolbar and win panel are
+   the solitaire styles above — only the board layout differs, since ten columns,
+   eight free cells and eight foundations need a wider, tighter grid. */
+
+.fc-container {
+    --sol-pad: 1.5rem;
+    padding-left: var(--sol-pad);
+    padding-right: var(--sol-pad);
+    max-width: 1240px;
+}
+
+/* The slots cannot shrink forever and stay readable, so below the floor width
+   the board scrolls sideways instead. */
+.fc-scroll {
+    width: 100%;
+    overflow-x: auto;
+    /* A horizontal scrollbar is drawn inside the box, which would otherwise push
+       the board into vertical overflow and summon a second scrollbar. */
+    overflow-y: hidden;
+    padding-bottom: 1rem;
+}
+
+.fc-board {
+    --sol-gap: clamp(0.2rem, 0.7vw, 0.45rem);
+    /* 100vw counts the scrollbar the page may be showing, so leave slack for it. */
+    --fc-width: min(1160px, 100vw - 2 * var(--sol-pad) - 2rem);
+    /* Sized so the sixteen slots of the top row sit on one line: two rows of
+       them would cost a third of the height the columns need to fan into. */
+    --card-w: max(44px, min(84px, calc((var(--fc-width) - 20 * var(--sol-gap)) / 16)));
+    --card-h: calc(var(--card-w) * 1.42);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--sol-gap) * 3);
+    min-width: calc(16 * var(--card-w) + 20 * var(--sol-gap));
+}
+
+.fc-top {
+    display: flex;
+    justify-content: center;
+    gap: calc(var(--sol-gap) * 6);
+}
+
+.fc-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.fc-group-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+}
+
+.fc-slots {
+    display: grid;
+    grid-auto-flow: column;
+    gap: var(--sol-gap);
+}
+
+/* A covered card shows only its top strip, and the suit under the rank in the
+   top-left corner falls outside it — so repeat the suit across the top right,
+   level with the rank, where it stays in view however tight the fan gets. */
+.fc-corner-tr {
+    position: absolute;
+    top: calc(var(--card-w) * 0.06);
+    right: calc(var(--card-w) * 0.08);
+    line-height: 1.05;
+    font-weight: bold;
+    font-size: calc(var(--card-w) * 0.28);
+}
+
+.fc-tableau-row {
+    display: grid;
+    grid-template-columns: repeat(10, var(--card-w));
+    gap: var(--sol-gap);
+    justify-content: center;
+}
+
 @media (max-width: 800px) {
     .tool-layout {
         flex-direction: column;
@@ -1629,6 +1710,21 @@ a.pager-item:hover {
 @media (max-width: 640px) {
     .sol-container {
         --sol-pad: 0.5rem;
+    }
+
+    .fc-container {
+        --sol-pad: 0.4rem;
+    }
+
+    /* On a phone the sideways room is the scarce one, so let the top row fall onto
+       two lines and size the cards by the ten columns instead of the sixteen slots. */
+    .fc-board {
+        --card-w: max(40px, min(84px, calc((var(--fc-width) - 9 * var(--sol-gap)) / 10)));
+        min-width: calc(10 * var(--card-w) + 9 * var(--sol-gap));
+    }
+
+    .fc-top {
+        flex-wrap: wrap;
     }
 
     .sol-pip,
