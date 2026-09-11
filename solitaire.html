@@ -59,6 +59,7 @@
 				<span>Moves <span id="moveCount">0</span></span>
 				<span>Time <span id="timeDisplay">0:00</span></span>
 			</div>
+			<button type="button" class="sol-btn" id="rulesBtn">Rules</button>
 		</div>
 
 		<div class="sol-board" id="board">
@@ -92,12 +93,18 @@
 			</div>
 		</div>
 
-		<p class="sol-rules">
-			Draw one card at a time — click the stock to turn a card, and click it again once empty to recycle the waste.
-			Build the four foundations up by suit from Ace to King, and build the columns down in alternating colours.
-			House rule: <strong>any card or run may be moved onto an empty column</strong>, not just a King.
-			Click a card to send it to the best available spot, or drag it where you want it.
-		</p>
+		<div class="sol-modal" id="rulesModal" role="dialog" aria-modal="true" aria-labelledby="rulesTitle" hidden>
+			<div class="sol-modal-panel">
+				<h2 class="sol-modal-title" id="rulesTitle">How to play</h2>
+				<p class="sol-modal-body">
+					Draw one card at a time — click the stock to turn a card, and click it again once empty to recycle the waste.
+					Build the four foundations up by suit from Ace to King, and build the columns down in alternating colours.
+					House rule: <strong>any card or run may be moved onto an empty column</strong>, not just a King.
+					Click a card to send it to the best available spot, or drag it where you want it.
+				</p>
+				<button type="button" class="sol-btn" id="rulesCloseBtn">Close</button>
+			</div>
+		</div>
 	</div>
 
 	<script>
@@ -433,6 +440,7 @@
 				this.autoBtn = document.getElementById('autoBtn');
 				this.winOverlay = document.getElementById('winOverlay');
 				this.winDetail = document.getElementById('winDetail');
+				this.rulesModal = document.getElementById('rulesModal');
 				this.dragLayer = null;
 				this.drag = null;
 				this.seconds = 0;
@@ -638,12 +646,29 @@
 				this.winOverlay.hidden = true;
 			}
 
+			openRules() {
+				this.rulesModal.hidden = false;
+			}
+
+			closeRules() {
+				this.rulesModal.hidden = true;
+			}
+
 			bindEvents() {
 				document.getElementById('newGameBtn').addEventListener('click', () => this.startNewGame());
 				document.getElementById('winNewGameBtn').addEventListener('click', () => this.startNewGame());
 				document.getElementById('winCancelBtn').addEventListener('click', () => this.dismissWin());
 				this.undoBtn.addEventListener('click', () => this.handleUndo());
 				this.autoBtn.addEventListener('click', () => this.startAutoFinish());
+
+				document.getElementById('rulesBtn').addEventListener('click', () => this.openRules());
+				document.getElementById('rulesCloseBtn').addEventListener('click', () => this.closeRules());
+				this.rulesModal.addEventListener('click', (event) => {
+					if (event.target === this.rulesModal) this.closeRules();
+				});
+				document.addEventListener('keydown', (event) => {
+					if (event.key === 'Escape' && !this.rulesModal.hidden) this.closeRules();
+				});
 
 				this.board.addEventListener('contextmenu', (event) => {
 					const cardElement = event.target.closest('.sol-card');

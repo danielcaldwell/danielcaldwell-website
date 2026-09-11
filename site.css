@@ -1642,17 +1642,9 @@ a.pager-item:hover {
     gap: 0.6rem;
 }
 
-.sol-rules {
-    max-width: 640px;
-    margin-top: 1.25rem;
-    font-size: 0.8rem;
-    line-height: 1.5;
-    opacity: 0.75;
-}
-
-/* The FreeCell rules live in a modal opened from the toolbar Rules button, so
-   the board keeps the full height instead of the rules paragraph below it. */
-.fc-modal {
+/* The rules live in a modal opened from the toolbar Rules button, so the board
+   keeps the full height instead of a rules paragraph below it. */
+.sol-modal {
     position: fixed;
     inset: 0;
     z-index: 1500;
@@ -1663,11 +1655,11 @@ a.pager-item:hover {
     background-color: rgba(0, 0, 0, 0.55);
 }
 
-.fc-modal[hidden] {
+.sol-modal[hidden] {
     display: none;
 }
 
-.fc-modal-panel {
+.sol-modal-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1682,12 +1674,12 @@ a.pager-item:hover {
     text-align: center;
 }
 
-.fc-modal-title {
+.sol-modal-title {
     font-size: 1.3rem;
     font-weight: bold;
 }
 
-.fc-modal-body {
+.sol-modal-body {
     font-size: 0.9rem;
     line-height: 1.6;
     text-align: left;
