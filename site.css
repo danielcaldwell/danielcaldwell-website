@@ -1571,6 +1571,14 @@ a.pager-item:hover {
     transform: rotate(180deg);
 }
 
+/* The suit glyphs render shorter than the digits at a shared font size and sit
+   lower on the baseline, so scale them up to the digits' cap height and lift
+   them to line up the tops. */
+.sol-corner .sol-suit {
+    font-size: 1.2em;
+    transform: translateY(calc(var(--card-w) * -0.058));
+}
+
 /* A right-clicked card lifts above its neighbours so its whole face shows; the
    slot rises with it so the lift clears the next column too. */
 .sol-card.sol-peek {
