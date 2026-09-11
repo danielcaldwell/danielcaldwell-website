@@ -84,7 +84,10 @@
 				<div class="sol-win-panel">
 					<div class="sol-win-title">You win!</div>
 					<div class="sol-win-detail" id="winDetail"></div>
-					<button type="button" class="sol-btn" id="winNewGameBtn">New Game</button>
+					<div class="sol-win-actions">
+						<button type="button" class="sol-btn" id="winNewGameBtn">New Game</button>
+						<button type="button" class="sol-btn" id="winCancelBtn">Cancel</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -436,6 +439,8 @@
 				this.timerId = null;
 				this.fanStep = 0;
 				this.autoFinishId = null;
+				this.winDismissed = false;
+				this.peekEl = null;
 
 				this.restoreSaved();
 				this.bindEvents();
@@ -598,21 +603,54 @@
 				this.undoBtn.disabled = !this.game.history.length;
 				this.autoBtn.disabled = !this.game.canAutoFinish() || Boolean(this.autoFinishId);
 				const won = this.game.isWon();
-				this.winOverlay.hidden = !won;
+				if (!won) this.winDismissed = false;
+				this.winOverlay.hidden = !won || this.winDismissed;
 				if (won) {
 					this.stopTimer();
 					this.winDetail.textContent = `${this.game.moves} moves in ${this.timeDisplay.textContent}.`;
 				}
+				this.peekEl = null;
 				this.save();
 			}
 
 			/* --- interaction --- */
 
+			/* Right-clicking a covered card lifts it clear of its neighbours so its
+			   whole face shows; the next card interaction or re-render drops the lift. */
+			peekCard(cardElement) {
+				this.clearPeek();
+				cardElement.classList.add('sol-peek');
+				const slot = cardElement.closest('.sol-slot');
+				if (slot) slot.classList.add('sol-peek-slot');
+				this.peekEl = cardElement;
+			}
+
+			clearPeek() {
+				if (!this.peekEl) return;
+				this.peekEl.classList.remove('sol-peek');
+				const slot = this.peekEl.closest('.sol-slot');
+				if (slot) slot.classList.remove('sol-peek-slot');
+				this.peekEl = null;
+			}
+
+			dismissWin() {
+				this.winDismissed = true;
+				this.winOverlay.hidden = true;
+			}
+
 			bindEvents() {
 				document.getElementById('newGameBtn').addEventListener('click', () => this.startNewGame());
 				document.getElementById('winNewGameBtn').addEventListener('click', () => this.startNewGame());
+				document.getElementById('winCancelBtn').addEventListener('click', () => this.dismissWin());
 				this.undoBtn.addEventListener('click', () => this.handleUndo());
 				this.autoBtn.addEventListener('click', () => this.startAutoFinish());
+
+				this.board.addEventListener('contextmenu', (event) => {
+					const cardElement = event.target.closest('.sol-card');
+					if (!cardElement) return;
+					event.preventDefault();
+					this.peekCard(cardElement);
+				});
 
 				this.stockSlot.addEventListener('keydown', (event) => {
 					if (event.key === 'Enter' || event.key === ' ') {
@@ -651,6 +689,7 @@
 				this.stopAutoFinish();
 				this.game.newGame();
 				this.seconds = 0;
+				this.winDismissed = false;
 				this.stopTimer();
 				this.render();
 			}
@@ -690,6 +729,7 @@
 
 			onPointerDown(event) {
 				if (this.drag) return;
+				this.clearPeek();
 				if (event.button !== 0 && event.pointerType === 'mouse') return;
 				const cardElement = event.target.closest('.sol-card');
 				const slot = event.target.closest('[data-pile]');

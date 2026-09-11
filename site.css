@@ -1560,6 +1560,17 @@ a.pager-item:hover {
     transform: rotate(180deg);
 }
 
+/* A right-clicked card lifts above its neighbours so its whole face shows; the
+   slot rises with it so the lift clears the next column too. */
+.sol-card.sol-peek {
+    z-index: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.sol-slot.sol-peek-slot {
+    z-index: 700;
+}
+
 .sol-drag {
     position: fixed;
     top: 0;
@@ -1605,6 +1616,11 @@ a.pager-item:hover {
 .sol-win-detail {
     font-size: 0.85rem;
     opacity: 0.8;
+}
+
+.sol-win-actions {
+    display: flex;
+    gap: 0.6rem;
 }
 
 .sol-rules {
