@@ -99,6 +99,10 @@
 
 	<script>
 		const SUITS = ['s', 'h', 'd', 'c'];
+		/* Foundations fill in this suit order — hearts, spades, diamonds, clubs —
+		   so an auto-played ace has a home slot rather than landing in the first
+		   free foundation. */
+		const FOUNDATION_SUIT_ORDER = ['h', 's', 'd', 'c'];
 		const SUIT_SYMBOL = { s: '♠', h: '♥', d: '♦', c: '♣' };
 		const SUIT_NAME = { s: 'Spades', h: 'Hearts', d: 'Diamonds', c: 'Clubs' };
 		const RED_SUITS = new Set(['h', 'd']);
@@ -257,6 +261,50 @@
 				if (top && !top.faceUp) top.faceUp = true;
 			}
 
+			/* Foundation an auto-played ace should land on. Aces prefer the order
+			   hearts, spades, diamonds, clubs across the four foundations. Once an
+			   ace sits in an off-preference slot the rest of the sequence rotates to
+			   go around it — reading the ring of slots still spells h, s, d, c — so a
+			   hand-dragged ace stays put and the others fall in beside it. */
+			foundationForAce(suit) {
+				const base = FOUNDATION_SUIT_ORDER;
+				const home = base.indexOf(suit);
+				/* Each ace already down votes for the rotation it implies; the most
+				   popular wins, ties break toward no rotation. */
+				const votes = new Map();
+				this.foundations.forEach((pile, i) => {
+					if (!pile.length) return;
+					const offset = ((i - base.indexOf(pile[0].suit)) % 4 + 4) % 4;
+					votes.set(offset, (votes.get(offset) || 0) + 1);
+				});
+				let offset = 0;
+				let best = -1;
+				for (const [candidate, count] of votes) {
+					if (count > best || (count === best && candidate < offset)) {
+						best = count;
+						offset = candidate;
+					}
+				}
+				for (let i = 0; i < 4; i++) {
+					if (!this.foundations[i].length && ((i - offset) % 4 + 4) % 4 === home) return `foundation-${i}`;
+				}
+				/* No home slot free (conflicting hand placements) — take any opening. */
+				for (let i = 0; i < 4; i++) {
+					if (!this.foundations[i].length) return `foundation-${i}`;
+				}
+				return null;
+			}
+
+			/* The foundation a single card should go home to: an ace follows the suit
+			   order, every other card has just the one pile of its suit to build on. */
+			foundationForCard(card) {
+				if (card.rank === 1) return this.foundationForAce(card.suit);
+				for (let i = 0; i < 4; i++) {
+					if (this.canDrop([card], `foundation-${i}`)) return `foundation-${i}`;
+				}
+				return null;
+			}
+
 			/* Best destination for a click: a foundation if one will take the card,
 			   otherwise a column, preferring an occupied one over an empty one. */
 			findAutoTarget(fromId, index) {
@@ -268,10 +316,8 @@
 				if (fromId.startsWith('foundation')) return null;
 				const cards = source.slice(index);
 				if (cards.length === 1) {
-					for (let i = 0; i < 4; i++) {
-						const id = `foundation-${i}`;
-						if (this.canDrop(cards, id)) return id;
-					}
+					const home = this.foundationForCard(cards[0]);
+					if (home) return home;
 				}
 				let emptyTarget = null;
 				const movesWholePile = fromId.startsWith('tableau') && index === 0;
@@ -315,12 +361,10 @@
 					const pile = this.pile(fromId);
 					if (!pile.length) continue;
 					const index = pile.length - 1;
-					const cards = pile.slice(index);
-					for (let i = 0; i < 4; i++) {
-						if (this.canDrop(cards, `foundation-${i}`)) {
-							this.tryMove(fromId, index, `foundation-${i}`);
-							return 'played';
-						}
+					const home = this.foundationForCard(pile[index]);
+					if (home) {
+						this.tryMove(fromId, index, home);
+						return 'played';
 					}
 				}
 				if (this.stock.length || this.waste.length) {
