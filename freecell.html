@@ -564,10 +564,10 @@
 				element.setAttribute('aria-label', card.name);
 				if (this.game.isMovable(pileId, index)) element.classList.add('sol-draggable');
 				element.innerHTML =
-					`<div class="sol-corner sol-corner-tl"><span class="sol-rank">${card.label}</span><span class="sol-suit">${card.symbol}</span></div>` +
-					`<div class="fc-corner-tr">${card.symbol}</div>` +
-					`<div class="sol-pip">${card.symbol}</div>` +
-					`<div class="sol-corner sol-corner-br"><span class="sol-rank">${card.label}</span><span class="sol-suit">${card.symbol}</span></div>`;
+					`<div class="sol-corner sol-corner-tl"><span class="sol-rank">${card.label}</span></div>` +
+					`<div class="sol-corner sol-corner-tr"><span class="sol-suit">${card.symbol}</span></div>` +
+					`<div class="sol-corner sol-corner-bl"><span class="sol-suit">${card.symbol}</span></div>` +
+					`<div class="sol-corner sol-corner-br"><span class="sol-rank">${card.label}</span></div>`;
 				return element;
 			}
 

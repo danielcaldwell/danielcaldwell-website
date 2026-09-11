@@ -1535,29 +1535,29 @@ a.pager-item:hover {
     font-size: calc(var(--card-w) * 0.3);
 }
 
+/* Rank top-left and suit top-right, each mirrored upside down in the opposite
+   corner (rank bottom-right, suit bottom-left) so the card reads the same either
+   way up. Rank and suit share the one corner font size. */
 .sol-corner-tl {
     top: calc(var(--card-w) * 0.06);
     left: calc(var(--card-w) * 0.08);
+}
+
+.sol-corner-tr {
+    top: calc(var(--card-w) * 0.06);
+    right: calc(var(--card-w) * 0.08);
+}
+
+.sol-corner-bl {
+    left: calc(var(--card-w) * 0.08);
+    bottom: calc(var(--card-w) * 0.06);
+    transform: rotate(180deg);
 }
 
 .sol-corner-br {
     right: calc(var(--card-w) * 0.08);
     bottom: calc(var(--card-w) * 0.06);
     transform: rotate(180deg);
-}
-
-.sol-corner .sol-suit {
-    font-size: calc(var(--card-w) * 0.24);
-}
-
-.sol-pip {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(var(--card-w) * 0.5);
-    opacity: 0.9;
 }
 
 .sol-drag {
@@ -1677,18 +1677,6 @@ a.pager-item:hover {
     gap: var(--sol-gap);
 }
 
-/* A covered card shows only its top strip, and the suit under the rank in the
-   top-left corner falls outside it — so repeat the suit across the top right,
-   level with the rank, where it stays in view however tight the fan gets. */
-.fc-corner-tr {
-    position: absolute;
-    top: calc(var(--card-w) * 0.06);
-    right: calc(var(--card-w) * 0.08);
-    line-height: 1.05;
-    font-weight: bold;
-    font-size: calc(var(--card-w) * 0.28);
-}
-
 .fc-tableau-row {
     display: grid;
     grid-template-columns: repeat(10, var(--card-w));
@@ -1717,19 +1705,16 @@ a.pager-item:hover {
     }
 
     /* On a phone the sideways room is the scarce one, so let the top row fall onto
-       two lines and size the cards by the ten columns instead of the sixteen slots. */
+       two lines and size the cards by the ten columns instead of the sixteen slots.
+       The floor is low enough that a phone-width board (down to ~320px) shrinks to
+       fit rather than running off the side; only narrower than that does it scroll. */
     .fc-board {
-        --card-w: max(40px, min(84px, calc((var(--fc-width) - 9 * var(--sol-gap)) / 10)));
+        --card-w: max(28px, min(84px, calc((var(--fc-width) - 9 * var(--sol-gap)) / 10)));
         min-width: calc(10 * var(--card-w) + 9 * var(--sol-gap));
     }
 
     .fc-top {
         flex-wrap: wrap;
-    }
-
-    .sol-pip,
-    .sol-corner-br {
-        display: none;
     }
 
     .sol-stats {
