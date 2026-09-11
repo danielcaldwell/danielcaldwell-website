@@ -1441,6 +1441,17 @@ a.pager-item:hover {
     opacity: 0.85;
 }
 
+/* Push the Rules button to the right edge of the toolbar, and drop the
+   Moves/Time readout onto its own row below the buttons. */
+.fc-rules-btn {
+    margin-left: auto;
+}
+
+.sol-stats.fc-stats {
+    margin-left: 0;
+    margin-bottom: 0.85rem;
+}
+
 .sol-board {
     --sol-gap: clamp(0.25rem, 1.1vw, 0.6rem);
     --sol-width: min(860px, 100vw - 2 * var(--sol-pad) - 6px);
@@ -1629,6 +1640,49 @@ a.pager-item:hover {
     font-size: 0.8rem;
     line-height: 1.5;
     opacity: 0.75;
+}
+
+/* The FreeCell rules live in a modal opened from the toolbar Rules button, so
+   the board keeps the full height instead of the rules paragraph below it. */
+.fc-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.55);
+}
+
+.fc-modal[hidden] {
+    display: none;
+}
+
+.fc-modal-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 640px;
+    width: 100%;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    background-color: var(--settings-bg);
+    border: 2px solid var(--border-color);
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.fc-modal-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.fc-modal-body {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    text-align: left;
 }
 
 /* Double-deck FreeCell. The cards, slots, drag layer, toolbar and win panel are
